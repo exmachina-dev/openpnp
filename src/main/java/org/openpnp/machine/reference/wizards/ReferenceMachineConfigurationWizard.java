@@ -12,6 +12,7 @@ import org.openpnp.machine.reference.driver.GrblDriver;
 import org.openpnp.machine.reference.driver.LinuxCNC;
 import org.openpnp.machine.reference.driver.MarlinDriver;
 import org.openpnp.machine.reference.driver.NullDriver;
+import org.openpnp.machine.reference.driver.FireNodeJsDriver;
 import org.openpnp.machine.reference.driver.SimulatorDriver;
 import org.openpnp.machine.reference.driver.SprinterDriver;
 import org.openpnp.machine.reference.driver.TinygDriver;
@@ -48,6 +49,7 @@ public class ReferenceMachineConfigurationWizard extends AbstractConfigurationWi
         comboBoxDriver.addItem(SprinterDriver.class.getCanonicalName());
         comboBoxDriver.addItem(TinygDriver.class.getCanonicalName());
         comboBoxDriver.addItem(OpenBuildsDriver.class.getCanonicalName());
+        comboBoxDriver.addItem(FireNodeJsDriver.class.getCanonicalName());
         comboBoxDriver.addItem(org.firepick.driver.MarlinDriver.class.getCanonicalName());
         comboBoxDriver.addItem(org.firepick.driver.FireStepDriver.class.getCanonicalName());
 
