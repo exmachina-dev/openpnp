@@ -37,11 +37,11 @@ public abstract class AbstractEthernetDriver implements ReferenceDriver, Closeab
     protected synchronized void connect() throws Exception {
         disconnect();
         this.setHostUrl(this.protocol, this.host, this.port);
+        Unirest.setDefaultHeader("Accept", "application/json");
     }
 
     protected synchronized void disconnect() throws Exception {
-        Unirest.shutdown();
-        this.hostUrl = null;
+        //Unirest.shutdown();
     }
 
     @Override
@@ -102,12 +102,5 @@ public abstract class AbstractEthernetDriver implements ReferenceDriver, Closeab
         // TODO Auto-generated method stub
         return null;
     }
-
-    /**
-     * SerialInputStream and SerialOutputStream are from the pull request referenced in:
-     * https://github.com/scream3r/java-simple-serial-connector/issues/17
-     * 
-     * If that pull request is ever merged we can update and remove these.
-     */
 }
 

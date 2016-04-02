@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Jason von Nieda <jason@vonnieda.org>
+ * Copyright (C) 2016 Benoit Rapidel <benoit.rapidel@exmachina.fr>
  * 
  * This file is part of OpenPnP.
  * 
@@ -21,6 +21,7 @@ package org.openpnp.machine.reference.driver;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.concurrent.TimeoutException;
 
@@ -43,20 +44,15 @@ import org.slf4j.LoggerFactory;
 
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.request.GetRequest;
-import com.mashape.unirest.request.BaseRequest;
+import com.mashape.unirest.request.HttpRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
 import com.mashape.unirest.request.body.MultipartBody;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
-/**
- * TODO: Consider adding some type of heartbeat to the firmware. TODO: The whole movement wait lock
- * thing has to go. See if we can do a P4 type command like the other drivers to wait for movement
- * to complete. Disabled axes don't send status reports, so movement wait lock never happens.
- * Probably short moves also won't.
- */
 public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(FireNodeJsDriver.class);
     private static final int minimumRequiredVersion = 4; // Version is major * 1000 + minor. Patch number is no checked.
@@ -81,23 +77,20 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
     @Override
     public synchronized void connect() throws Exception {
         super.connect();
-
-        Unirest.setDefaultHeader("Accept", "application/json");
-        this.setHostUrl(this.protocol, this.host, this.port);
         
         for (int i = 0; i < 1 && !connected; i++) {
             try {
-                HttpResponse<JsonNode> helloResponse = sendCommand("/firenodejs/models");
+                HttpResponse<String> helloResponse = sendCommandAsString("/firenodejs/hello");
                 if (helloResponse.getStatus() != 200) {
                 	throw new Exception(String.format("Unable to connect to {} ({})", hostUrl, helloResponse.getStatus()));
                 } else {
-                	logger.debug(String.format("{} said: {}", hostUrl, helloResponse.getBody()));
+                	logger.debug(String.format("%s said: %s", hostUrl, helloResponse.getBody()));
                 }
 
                 HttpResponse<JsonNode> response = sendCommand("/firenodejs/models");
-                JSONObject v = response.getBody().getObject().getJSONObject("version");
+                JSONObject v = response.getBody().getObject().getJSONObject("firenodejs").getJSONObject("version");
                 connectedVersion = v.getInt("major") * 1000 + v.getInt("minor");
-                String versionString = v.getString("major") + "." + v.getString("minor") + "." + v.getString("patch");
+                String versionString = String.format("%d.%d.%d", v.getInt("major"), v.getInt("minor"), v.getInt("patch"));
                 logger.debug("Version: {}", versionString);
                 connected = true;
                 break;
@@ -136,17 +129,17 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
 
         // TODO: iod28 switches pin 28 which is the power supply pin on FPD from TW
         // Should be configurable
-        sendCommand(Unirest.post("/firestep").field("iod28", enabled ? "1" : "0"));
+        sendCommand("/firestep", new JSONObject().append("iod28" ,enabled ? "1" : "0"));
         
         // TODO: iod5 switches pin 5 which is the end effector led ring on FPD from TW
         // Should be configurable
-        sendCommand(Unirest.post("/firestep").field("iod5", enabled ? "1" : "0"));
+        sendCommand("/firestep", new JSONObject().append("iod5", enabled ? "1" : "0"));
     }
 
     @Override
     public void home(ReferenceHead head) throws Exception {
         synchronized (movementWaitLock) {
-            HttpResponse<JsonNode> response = sendCommand("/firestep", new JSONArray().put("hom"));
+            HttpResponse<JsonNode> response = sendCommand("/firestep", "hom");
             if (response.getStatus() == 0) {
                 waitForMovementComplete();
             }
@@ -159,7 +152,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
         homeCoords.put("y", homeLocation.getY());
         homeCoords.put("z", homeLocation.getZ());
         homeCoords.put("a", homeLocation.getRotation());
-        sendCommand("/firestep", new JSONArray().put("mov").put(homeCoords));
+        sendCommand("/firestep", new JSONObject().append("mov", homeCoords));
     }
 
     @Override
@@ -179,7 +172,8 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
         newCoords.put("y", y);
         newCoords.put("z", z);
         newCoords.put("a", c);
-        HttpResponse<JsonNode> response = sendCommand("/firestep", new JSONArray().put("mov").put(newCoords));
+        HttpResponse<JsonNode> response = sendCommand("/firestep", new JSONObject().append("mov", newCoords));
+        checkResponseCode(response);
 
         if (!Double.isNaN(x)) {
             this.x = x;
@@ -214,9 +208,8 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
     @Override
     public void actuate(ReferenceActuator actuator, boolean on) throws Exception {
         if (actuator.getIndex() == 0) {
-        	JSONArray actuatorField = new JSONArray();
-        	actuatorField.put(String.format("iod{}", actuator.getIndex()));
-        	actuatorField.put(on ? 1 : 0);
+        	JSONObject actuatorField = new JSONObject();
+        	actuatorField.append(String.format("iod{}", actuator.getIndex()), on ? 1 : 0);
             sendCommand("/firestep", actuatorField);
         }
     }
@@ -226,8 +219,15 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
         return new Location(LengthUnit.Millimeters, x, y, z, c).add(hm.getHeadOffsets());
     }
 
-    private int getResponseStatusCode(HttpResponse<JsonNode> o) {
-        return o.getStatus();
+    private void checkResponseCode(HttpResponse<JsonNode> o) {
+    	if (o.getStatus() != 200) {
+    		logger.error("Error in HTTP response: {}", o.getBody());
+    	}
+    	
+    	if (o.getBody().getObject().getInt("s") != 0) {
+    		String error = getStatusCodeDetails(o.getBody().getObject().getInt("s"));
+    		logger.error("Error in response: {}", error);
+    	}
     }
 
     public synchronized void disconnect() {
@@ -256,21 +256,21 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
     	return sendCommand(Unirest.get(hostUrl + command));
     }
     
-    public synchronized HttpResponse<JsonNode> sendCommand(String command, JSONArray field) throws Exception {
+    public synchronized HttpResponse<JsonNode> sendCommand(String command, String... fields) throws Exception {
     	HttpRequestWithBody jsonCommand = Unirest.post(hostUrl + command);
-    	if (field.length() > 1) {
-    		jsonCommand.field(field.getString(0), field.get(1));
-    	} else {
-    		jsonCommand.field(field.getString(0), "");
+    	for (String field: fields) {
+    		jsonCommand.field(field, "");
     	}
     	
     	return sendCommand(jsonCommand);
     }
     
-    public synchronized HttpResponse<JsonNode> sendCommand(String command, Collection<JSONArray> fields) throws Exception {
+    public synchronized HttpResponse<JsonNode> sendCommand(String command, JSONObject fields) throws Exception {
     	HttpRequestWithBody jsonCommand = Unirest.post(hostUrl + command);
-    	for (JSONArray field: fields) {
-    		jsonCommand.field(field.getString(0), field.get(1));
+    	Iterator<?> keys = fields.keys();
+    	while (keys.hasNext()) {
+    		String k = keys.next().toString();
+    		jsonCommand.field(k, fields.get(k));
     	}
     	
     	return sendCommand(jsonCommand);
@@ -284,7 +284,12 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
     	return sendCommand(command);
     }*/
 
-    public synchronized HttpResponse<JsonNode> sendCommand(BaseRequest command) throws Exception {
+    public synchronized HttpResponse<JsonNode> sendCommand(HttpRequest command) throws Exception {
+    	
+    	if (hostUrl == null) {
+    		logger.error("Host url is not defined");
+    		throw new Exception("Host url is not defined");
+    	}
 
     	HttpResponse<JsonNode> response;
         synchronized (commandLock) {
@@ -293,15 +298,41 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
             if (response.getStatus() == 200) {
             	logger.debug("success");
             }
+	        if (response.getHeaders().size() == 0) {
+	            throw new Exception("Command did not return a response");
+	        }
+	
+	        if (response.getStatus() != 200) {
+	            throw new Exception("Request failed. Status code: " + response.getStatus());
+	        }
         }
-        if (response.getHeaders().size() == 0) {
-            throw new Exception("Command did not return a response");
-        }
+	    return response;
+    }
 
-        if (response.getStatus() != 200) {
-            throw new Exception("Request failed. Status code: " + response.getStatus());
+    public synchronized HttpResponse<String> sendCommandAsString(String command) throws Exception {
+    	
+    	if (hostUrl == null) {
+    		logger.error("Host url is not defined");
+    		throw new Exception("Host url is not defined");
+    	}
+
+    	HttpResponse<String> response;
+        synchronized (commandLock) {
+        	HttpRequest c = Unirest.get(hostUrl + command);
+            logger.debug("sendCommand({})", c.getHttpRequest().getUrl());
+            response = c.asString();
+            if (response.getStatus() == 200) {
+            	logger.debug("success");
+            }
+	        if (response.getHeaders().size() == 0) {
+	            throw new Exception("Command did not return a response");
+	        }
+	
+	        if (response.getStatus() != 200) {
+	            throw new Exception("Request failed. Status code: " + response.getStatus());
+	        }
         }
-        return response;
+	    return response;
     }
 
     public void run() {
@@ -332,69 +363,250 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
         }
     }
 
-    private void getStatusCodeDetails(int statusCode) {
-        // 0 | TG_OK | universal OK code (function completed successfully)
-        // 1 | TG_ERROR | generic error return (EPERM)
-        // 2 | TG_EAGAIN | function would block here (call again)
-        // 3 | TG_NOOP | function had no-operation
-        // 4 | TG_COMPLETE | operation is complete
-        // 5 | TG_TERMINATE | operation terminated (gracefully)
-        // 6 | TG_RESET | operation was hard reset (sig kill)
-        // 7 | TG_EOL | function returned end-of-line or end-of-message
-        // 8 | TG_EOF | function returned end-of-file
-        // 9 | TG_FILE_NOT_OPEN
-        // 10 | TG_FILE_SIZE_EXCEEDED
-        // 11 | TG_NO_SUCH_DEVICE
-        // 12 | TG_BUFFER_EMPTY
-        // 13 | TG_BUFFER_FULL
-        // 14 | TG_BUFFER_FULL_FATAL
-        // 15 | TG_INITIALIZING | initializing - not ready for use
-        // 16-19 | TG_ERROR_16 - TG_ERROR_19 | reserved
-        // 20 | TG_INTERNAL_ERROR | unrecoverable internal error
-        // 21 | TG_INTERNAL_RANGE_ERROR | number range error other than by user
-        // input
-        // 22 | TG_FLOATING_POINT_ERROR | number conversion error
-        // 23 | TG_DIVIDE_BY_ZERO
-        // 24 | TG_INVALID_ADDRESS
-        // 25 | TG_READ_ONLY_ADDRESS
-        // 26 | TG_INIT_FAIL | Initialization failure
-        // 27 | TG_SHUTDOWN | System shutdown occurred
-        // 28 | TG_MEMORY_CORRUPTION | Memory corruption detected
-        // 29-39 | TG_ERROR_26 - TG_ERROR_39 | reserved
-        // 40 | TG_UNRECOGNIZED_COMMAND | parser didn't recognize the command
-        // 41 | TG_EXPECTED_COMMAND_LETTER | malformed line to parser
-        // 42 | TG_BAD_NUMBER_FORMAT | number format error
-        // 43 | TG_INPUT_EXCEEDS_MAX_LENGTH | input string is too long
-        // 44 | TG_INPUT_VALUE_TOO_SMALL | value is under minimum for this
-        // parameter
-        // 45 | TG_INPUT_VALUE_TOO_LARGE | value is over maximum for this
-        // parameter
-        // 46 | TG_INPUT_VALUE_RANGE_ERROR | input error: value is out-of-range
-        // for this parameter
-        // 47 | TG_INPUT_VALUE_UNSUPPORTED | input error: value is not supported
-        // for this parameter
-        // 48 | TG_JSON_SYNTAX_ERROR | JSON string is not well formed
-        // 49 | TG_JSON_TOO_MANY_PAIRS | JSON string or has too many name:value
-        // pairs
-        // 50 | TG_JSON_TOO_LONG | JSON output string too long for output buffer
-        // 51 | TG_NO_BUFFER_SPACE | Buffer pool is full and cannot perform this
-        // operation
-        // 52 - 59 | TG_ERROR_51 - TG_ERROR_59 | reserved
-        // 60 | TG_ZERO_LENGTH_MOVE | move is zero length
-        // 61 | TG_GCODE_BLOCK_SKIPPED | block was skipped - usually because it
-        // was is too short
-        // 62 | TG_GCODE_INPUT_ERROR | general error for gcode input
-        // 63 | TG_GCODE_FEEDRATE_ERROR | no feedrate specified
-        // 64 | TG_GCODE_AXIS_WORD_MISSING | command requires at least one axis
-        // present
-        // 65 | TG_MODAL_GROUP_VIOLATION | gcode modal group error
-        // 66 | TG_HOMING_CYCLE_FAILED | homing cycle did not complete
-        // 67 | TG_MAX_TRAVEL_EXCEEDED
-        // 68 | TG_MAX_SPINDLE_SPEED_EXCEEDED
-        // 69 | TG_ARC_SPECIFICATION_ERROR | arc specification error
-        // 70-79 | TG_ERROR_70 - TG_ERROR_79 | reserved
-        // 80-99 | Expansion | Expansion ranges
-        // 100-119 | Expansion |
+    private String getStatusCodeDetails(int statusCode) {
+    	String r;
+    	switch (statusCode) {
+	    	case 0: r = "STATUS_OK"; 
+	    	break;
+	    	case 10: r = "STATUS_BUSY_PARSED"; 
+	    	break;
+	    	case 11: r = "STATUS_BUSY"; 
+	    	break;
+	    	case 12: r = "STATUS_BUSY_MOVING"; 
+	    	break;
+	    	case 13: r = "STATUS_BUSY_SETUP"; 
+	    	break;
+	    	case 14: r = "STATUS_BUSY_OK"; 
+	    	break;
+	    	case 15: r = "STATUS_BUSY_EEPROM"; 
+	    	break;
+	    	case 16: r = "STATUS_BUSY_CALIBRATING"; 
+	    	break;
+	    	case 20: r = "STATUS_WAIT_IDLE"; 
+	    	break;
+	    	case 21: r = "STATUS_WAIT_EOL"; 
+	    	break;
+	    	case 22: r = "STATUS_WAIT_CAMERA"; 
+	    	break;
+	    	case 23: r = "STATUS_WAIT_OPERATOR"; 
+	    	break;
+	    	case 24: r = "STATUS_WAIT_MOVING"; 
+	    	break;
+	    	case 25: r = "STATUS_WAIT_BUSY"; 
+	    	break;
+	    	case 26: r = "STATUS_WAIT_CANCELLED"; 
+	    	break;
+	    	case 27: r = "STATUS_WAIT_SLEEP"; 
+	    	break;
+	    	case -1: r = "STATUS_EMPTY"; 
+	    	break;
+	
+	    	case -100: r = "STATUS_POSITION_ERROR"; 
+	    	break;
+	    	case -101: r = "STATUS_AXIS_ERROR"; 
+	    	break;
+	    	case -102: r = "STATUS_SYS_ERROR"; 
+	    	break;
+	    	case -103: r = "STATUS_S1_ERROR"; 
+	    	break;
+	    	case -104: r = "STATUS_S2_ERROR"; 
+	    	break;
+	    	case -105: r = "STATUS_S3_ERROR"; 
+	    	break;
+	    	case -106: r = "STATUS_S4_ERROR"; 
+	    	break;
+	    	case -112: r = "STATUS_MOTOR_INDEX"; 
+	    	break;
+	    	case -113: r = "STATUS_STEP_RANGE_ERROR"; 
+	    	break;
+	    	case -115: r = "STATUS_JSON_MEM1"; 
+	    	break;
+	    	case -116: r = "STATUS_JSON_MEM2"; 
+	    	break;
+	    	case -117: r = "STATUS_JSON_MEM3"; 
+	    	break;
+	    	case -118: r = "STATUS_JSON_MEM4"; 
+	    	break;
+	    	case -119: r = "STATUS_WAIT_ERROR"; 
+	    	break;
+	    	case -120: r = "STATUS_AXIS_DISABLED"; 
+	    	break;
+	    	case -121: r = "STATUS_NOPIN"; 
+	    	break;
+	    	case -129: r = "STATUS_MOTOR_ERROR"; 
+	    	break;
+	    	case -130: r = "STATUS_NOT_IMPLEMENTED"; 
+	    	break;
+	    	case -131: r = "STATUS_NO_MOTOR"; 
+	    	break;
+	    	case -132: r = "STATUS_PIN_CONFIG"; 
+	    	break;
+	    	case -133: r = "STATUS_VALUE_RANGE"; 
+	    	break;
+	    	case -134: r = "STATUS_STATE"; 
+	    	break;
+	    	case -135: r = "STATUS_CORE_PIN"; 
+	    	break;
+	    	case -136: r = "STATUS_NO_SUCH_PIN"; 
+	    	break;
+	    	case -137: r = "STATUS_EEPROM_ADDR"; 
+	    	break;
+	    	case -138: r = "STATUS_EEPROM_JSON"; 
+	    	break;
+	    	case -139: r = "STATUS_PROBE_PIN"; 
+	    	break;
+	    	case -140: r = "STATUS_KINEMATIC_XYZ"; 
+	    	break;
+	    	case -141: r = "STATUS_USER_EEPROM"; 
+	    	break;
+	    	case -142: r = "STATUS_CAL_HOME1"; 
+	    	break;
+	    	case -143: r = "STATUS_MARK_INDEX"; 
+	    	break;
+	    	case -144: r = "STATUS_MARK_AXIS"; 
+	    	break;
+	    	case -145: r = "STATUS_CAL_BED"; 
+	    	break;
+	    	case -146: r = "STATUS_UNKNOWN_PROGRAM"; 
+	    	break;
+	    	case -147: r = "STATUS_PROGRAM_SIZE"; 
+	    	break;
+	    	case -148: r = "STATUS_ZBOWL_GEAR"; 
+	    	break;
+	    	case -149: r = "STATUS_CAL_DEGREES"; 
+	    	break;
+	    	case -150: r = "STATUS_CAL_POSITION_0"; 
+	    	break;
+	    	case -151: r = "STATUS_DELTA_HOME"; 
+	    	break;
+	    	case -152: r = "STATUS_INVALID_Z"; 
+	    	break;
+	    	case -153: r = "STATUS_NO_EEPROM"; 
+	    	break;
+	
+	    	case -200: r = "STATUS_STROKE_SEGPULSES"; 
+	    	break;
+	    	case -201: r = "STATUS_STROKE_END_ERROR"; 
+	    	break;
+	    	case -202: r = "STATUS_STROKE_MAXLEN"; 
+	    	break;
+	    	case -203: r = "STATUS_STROKE_TIME"; 
+	    	break;
+	    	case -204: r = "STATUS_STROKE_START"; 
+	    	break;
+	    	case -205: r = "STATUS_STROKE_NULL_ERROR"; 
+	    	break;
+	
+	    	case -400: r = "STATUS_JSON_BRACE_ERROR"; 
+	    	break;
+	    	case -401: r = "STATUS_JSON_BRACKET_ERROR"; 
+	    	break;
+	    	case -402: r = "STATUS_UNRECOGNIZED_NAME"; 
+	    	break;
+	    	case -403: r = "STATUS_JSON_PARSE_ERROR"; 
+	    	break;
+	    	case -404: r = "STATUS_JSON_TOO_LONG"; 
+	    	break;
+	    	case -407: r = "STATUS_JSON_OBJECT"; 
+	    	break;
+	    	case -408: r = "STATUS_JSON_POSITIVE"; 
+	    	break;
+	    	case -409: r = "STATUS_JSON_POSITIVE1"; 
+	    	break;
+	    	case -410: r = "STATUS_JSON_KEY"; 
+	    	break;
+	    	case -411: r = "STATUS_JSON_STROKE_ERROR"; 
+	    	break;
+	    	case -412: r = "STATUS_RANGE_ERROR"; 
+	    	break;
+	    	case -413: r = "STATUS_S1S2LEN_ERROR"; 
+	    	break;
+	    	case -414: r = "STATUS_S1S3LEN_ERROR"; 
+	    	break;
+	    	case -415: r = "STATUS_S1S4LEN_ERROR"; 
+	    	break;
+	    	case -416: r = "STATUS_FIELD_ERROR"; 
+	    	break;
+	    	case -417: r = "STATUS_FIELD_RANGE_ERROR"; 
+	    	break;
+	    	case -418: r = "STATUS_FIELD_ARRAY_ERROR"; 
+	    	break;
+	    	case -419: r = "STATUS_FIELD_REQUIRED"; 
+	    	break;
+	    	case -420: r = "STATUS_JSON_ARRAY_LEN"; 
+	    	break;
+	    	case -421: r = "STATUS_OUTPUT_FIELD"; 
+	    	break;
+	    	case -422: r = "STATUS_FIELD_HEX_ERROR"; 
+	    	break;
+	    	case -423: r = "STATUS_JSON_CMD"; 
+	    	break;
+	    	case -424: r = "STATUS_JSON_STRING"; 
+	    	break;
+	    	case -425: r = "STATUS_JSON_EEPROM"; 
+	    	break;
+	    	case -426: r = "STATUS_JSON_EXEC"; 
+	    	break;
+	    	case -427: r = "STATUS_JSON_BOOL"; 
+	    	break;
+	    	case -428: r = "STATUS_JSON_255"; 
+	    	break;
+	    	case -429: r = "STATUS_JSON_DIGIT"; 
+	    	break;
+	    	case -430: r = "STATUS_MTO_FIELD"; 
+	    	break;
+	    	case -431: r = "STATUS_NO_MOCK"; 
+	    	break;
+	
+	    	case -500: r = "STATUS_OPEN"; 
+	    	break;
+	    	case -501: r = "STATUS_IFIRESTEP"; 
+	    	break;
+	    	case -502: r = "STATUS_USB_OPEN"; 
+	    	break;
+	    	case -503: r = "STATUS_USB_CLOSE"; 
+	    	break;
+	    	case -504: r = "STATUS_TIMEOUT"; 
+	    	break;
+	    	case -505: r = "STATUS_USB_CONFIGURE"; 
+	    	break;
+	    	case -506: r = "STATUS_REQUEST_LF"; 
+	    	break;
+	
+	    	case -900: r = "STATUS_ESTOP"; 
+	    	break;
+	    	case -901: r = "STATUS_SERIAL_CANCEL"; 
+	    	break;
+	    	case -902: r = "STATUS_TRAVEL_MIN"; 
+	    	break;
+	    	case -903: r = "STATUS_TRAVEL_MAX"; 
+	    	break;
+	    	case -904: r = "STATUS_LIMIT_MIN"; 
+	    	break;
+	    	case -905: r = "STATUS_LIMIT_MAX"; 
+	    	break;
+	    	case -906: r = "STATUS_PROBE_FAILED"; 
+	    	break;
+	
+	    	case -1000: r = "STATUS_LINUX"; 
+	    	break;
+	    	case -1001: r = "STATUS_LINUX_EPERM"; 
+	    	break;
+	    	case -1004: r = "STATUS_LINUX_EINTR"; 
+	    	break;
+	    	case -1005: r = "STATUS_LINUX_EIO"; 
+	    	break;
+	    	case -1011: r = "STATUS_LINUX_EAGAIN"; 
+	    	break;
+	    	case -1013: r = "STATUS_LINUX_EACCES"; 
+	    	break;
+	    	case -1022: r = "STATUS_LINUX_EINVAL"; 
+	    	break;
+
+    		default: r = "UNRECOGNIZED_ERROR";
+    		break;
+    	}
+    	return r;
     }
 
     @Override
