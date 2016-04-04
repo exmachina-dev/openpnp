@@ -53,7 +53,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
-public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable {
+public class FireNodeJsDriver extends AbstractEthernetDriver {
     private static final Logger logger = LoggerFactory.getLogger(FireNodeJsDriver.class);
     private static final int minimumRequiredVersion = 4; // Version is major * 1000 + minor. Patch number is no checked.
 
@@ -63,12 +63,8 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
     private Location homeLocation = new Location(LengthUnit.Millimeters);
 
     private double x, y, z, c;
-    private Thread readerThread;
-    private boolean disconnectRequested;
     private Object commandLock = new Object();
     private Object movementWaitLock = new Object();
-    private HttpResponse<JsonNode> lastResponse;
-    private HttpResponse<JsonNode> baseResponse;
     private boolean connected;
     private int connectedVersion;
 
@@ -233,17 +229,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
     }
 
     public synchronized void disconnect() {
-        disconnectRequested = true;
         connected = false;
-
-        try {
-            if (readerThread != null && readerThread.isAlive()) {
-                readerThread.join();
-            }
-        }
-        catch (Exception e) {
-            logger.error("disconnect()", e);
-        }
 
         try {
             super.disconnect();
@@ -251,7 +237,6 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
         catch (Exception e) {
             logger.error("disconnect()", e);
         }
-        disconnectRequested = false;
     }
 
     public synchronized HttpResponse<JsonNode> sendCommand(String command) throws Exception {
@@ -335,25 +320,6 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
 	        }
         }
 	    return response;
-    }
-
-    public void run() {
-        while (!disconnectRequested) {
-            String line;
-            line = "test";
-            logger.trace(line);
-        }
-    }
-
-    private void processStatusReport(JSONObject o) {
-        if (o.has("stat")) {
-            int stat = o.getInt("stat");
-            if (stat == 3) {
-                synchronized (movementWaitLock) {
-                    movementWaitLock.notifyAll();
-                }
-            }
-        }
     }
 
     // TODO: If no movement is happening this will never return. We may want to
