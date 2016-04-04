@@ -71,6 +71,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         super.connect();
         
         connected = false;
+        String versionString = null;
         
         for (int i = 0; i < 1 && !connected; i++) {
             try {
@@ -84,7 +85,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
                 HttpResponse<JsonNode> response = sendCommand("/firenodejs/models");
                 JSONObject v = response.getBody().getObject().getJSONObject("firenodejs").getJSONObject("version");
                 connectedVersion = v.getInt("major") * 1000 + v.getInt("minor");
-                String versionString = String.format("%d.%d.%d", v.getInt("major"), v.getInt("minor"), v.getInt("patch"));
+                versionString = String.format("%d.%d.%d", v.getInt("major"), v.getInt("minor"), v.getInt("patch"));
                 logger.debug("Firenodejs version: {}", versionString);
                 connected = true;
                 break;
@@ -101,21 +102,16 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         }
 
         if (connectedVersion < minimumRequiredVersion) {
+        	logger.debug(String.format("%d < %d", connectedVersion, minimumRequiredVersion));
             throw new Exception(String.format(
                     "This driver requires FireNodeJs version %d.%d or higher. You are running version %.2f",
                     minimumRequiredVersion / 1000, minimumRequiredVersion - (Math.round(minimumRequiredVersion/1000)),
                     connectedVersion));
         } else {
-        	logger.debug("Version check successful: %.2f", connectedVersion);
+        	logger.debug(String.format("Version check successful: %.2f", connectedVersion/1));
         }
 
-        logger.debug(String.format("Connected to FireNodeJs Version: %.2f", connectedVersion));
-
-        // We are connected to at least the minimum required version now
-        // So perform some setup
-
-        // Turn off the stepper drivers
-        setEnabled(true);
+        logger.debug(String.format("Connected to FireNodeJs Version: {}", versionString));
     }
 
     @Override
