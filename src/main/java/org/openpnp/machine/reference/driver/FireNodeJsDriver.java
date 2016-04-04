@@ -91,7 +91,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
                 JSONObject v = response.getBody().getObject().getJSONObject("firenodejs").getJSONObject("version");
                 connectedVersion = v.getInt("major") * 1000 + v.getInt("minor");
                 String versionString = String.format("%d.%d.%d", v.getInt("major"), v.getInt("minor"), v.getInt("patch"));
-                logger.debug("Version: {}", versionString);
+                logger.debug("Firenodejs version: {}", versionString);
                 connected = true;
                 break;
             }
@@ -110,6 +110,8 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
             throw new Exception(String.format(
                     "This driver requires FireNodeJs version %.2f or higher. You are running version %.2f",
                     minimumRequiredVersion, connectedVersion));
+        } else {
+        	logger.debug("Version check successful: %.2f", connectedVersion);
         }
 
         logger.debug(String.format("Connected to FireNodeJs Version: %.2f", connectedVersion));
@@ -296,7 +298,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver implements Runnable
             logger.debug("sendCommand({})", command.getHttpRequest().getUrl());
             response = command.asJson();
             if (response.getStatus() == 200) {
-            	logger.debug("success");
+            	logger.debug("OK");
             }
 	        if (response.getHeaders().size() == 0) {
 	            throw new Exception("Command did not return a response");
