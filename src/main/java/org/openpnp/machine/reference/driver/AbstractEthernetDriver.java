@@ -37,6 +37,7 @@ public abstract class AbstractEthernetDriver implements ReferenceDriver, Closeab
     protected synchronized void connect() throws Exception {
         this.setHostUrl(this.protocol, this.host, this.port);
         Unirest.setDefaultHeader("Accept", "application/json");
+        Unirest.setDefaultHeader("Content-Type", "application/json");
     }
 
     protected synchronized void disconnect() throws Exception {

@@ -51,7 +51,7 @@ import org.json.JSONArray;
 
 public class FireNodeJsDriver extends AbstractEthernetDriver {
     private static final Logger logger = LoggerFactory.getLogger(FireNodeJsDriver.class);
-    private static final int minimumRequiredVersion = 20001; // Version is major * 1000 + minor. Patch number is no checked.
+    private static final int minimumRequiredVersion = 20; // Version is major * 1000 + minor. Patch number is no checked.
 
     @Attribute(required = false)
     private double feedRateMmPerMinute = 5000;
