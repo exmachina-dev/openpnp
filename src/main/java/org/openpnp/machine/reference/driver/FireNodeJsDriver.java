@@ -123,12 +123,12 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         if (connected) {
 	        // TODO: iod28 switches pin 28 which is the power supply pin on FPD from TW
 	        // Should be configurable
-	        sendCommand("/firestep", "iod28", enabled ? "1" : "0");
-	        
-	        // TODO: iod5 switches pin 5 which is the end effector led ring on FPD from TW
+			sendCommand("/firestep", new JSONObject().put("iod28", enabled));
+
+			// TODO: iod5 switches pin 5 which is the end effector led ring on FPD from TW
 	        // Should be configurable
-	        sendCommand("/firestep", "iod5", enabled ? "1" : "0");
-        }
+			sendCommand("/firestep", new JSONObject().put("iod5", enabled));
+		}
     }
 
     @Override
@@ -147,7 +147,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         homeCoords.put("y", homeLocation.getY());
         homeCoords.put("z", homeLocation.getZ());
         homeCoords.put("a", homeLocation.getRotation());
-        sendCommand("/firestep", "mov", homeCoords);
+        sendCommand(Unirest.post(hostUrl + "/firestep").field("mov", homeCoords));
     }
 
     @Override
@@ -167,7 +167,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         newCoords.put("y", y);
         newCoords.put("z", z);
         newCoords.put("a", c);
-        HttpResponse<JsonNode> response = sendCommand("/firestep", "mov", newCoords);
+        HttpResponse<JsonNode> response = sendCommand(Unirest.post(hostUrl + "/firestep").field("mov", newCoords));
         checkResponseCode(response);
 
         if (!Double.isNaN(x)) {
@@ -203,7 +203,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     @Override
     public void actuate(ReferenceActuator actuator, boolean on) throws Exception {
         if (actuator.getIndex() == 0) {
-            sendCommand("/firestep", String.format("iod{}", actuator.getIndex()), on ? 1 : 0);
+            sendCommand("/firestep", new JSONObject().put(String.format("iod{}", actuator.getIndex()), on));
         }
     }
 
@@ -239,30 +239,18 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     }
     
     public synchronized HttpResponse<JsonNode> sendCommand(String command, String field) throws Exception {
+    	return sendCommand(command, new JSONObject().put(field, ""));
+    }
+
+    public synchronized HttpResponse<JsonNode> sendCommand(String command, JSONObject object) throws Exception {
+    	return sendCommand(command, new JSONArray().put(object));
+    }
+
+    public synchronized HttpResponse<JsonNode> sendCommand(String command, JSONArray jsonArray) throws Exception {
     	HttpRequestWithBody jsonCommand = Unirest.post(hostUrl + command);
-    	
-    	return sendCommand(jsonCommand.field(field, ""));
+
+    	return sendCommand(jsonCommand.body(new JsonNode(jsonArray.toString())));
     }
-    
-    public synchronized HttpResponse<JsonNode> sendCommand(String command, String key, Object object) throws Exception {
-    	HttpRequestWithBody jsonCommand = Unirest.post(hostUrl + command);
-    	
-    	return sendCommand(jsonCommand.field(key, object));
-    }
-    
-    public synchronized HttpResponse<JsonNode> sendCommand(String command, String key, Collection<?> fields) throws Exception {
-    	HttpRequestWithBody jsonCommand = Unirest.post(hostUrl + command);
-    	
-    	return sendCommand(jsonCommand.field(key, fields));
-    }
-    /*
-    public synchronized HttpResponse<JsonNode> sendCommand(GetRequest command) throws Exception {
-    	return sendCommand(command);
-    }
-    
-    public synchronized HttpResponse<JsonNode> sendCommand(MultipartBody command) throws Exception {
-    	return sendCommand(command);
-    }*/
 
     public synchronized HttpResponse<JsonNode> sendCommand(BaseRequest command) throws Exception {
     	
