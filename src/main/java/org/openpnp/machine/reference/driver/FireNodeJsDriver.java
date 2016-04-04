@@ -19,11 +19,7 @@
 
 package org.openpnp.machine.reference.driver;
 
-import java.io.IOException;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.concurrent.TimeoutException;
 
 import javax.swing.Action;
 
@@ -43,7 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.request.GetRequest;
+import com.mashape.unirest.request.BaseRequest;
 import com.mashape.unirest.request.HttpRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
 import com.mashape.unirest.request.body.MultipartBody;
@@ -150,7 +146,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         homeCoords.put("y", homeLocation.getY());
         homeCoords.put("z", homeLocation.getZ());
         homeCoords.put("a", homeLocation.getRotation());
-        sendCommand("/firestep", new JSONObject().append("mov", homeCoords));
+        sendCommand("/firestep", "mov", homeCoords);
     }
 
     @Override
@@ -170,7 +166,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         newCoords.put("y", y);
         newCoords.put("z", z);
         newCoords.put("a", c);
-        HttpResponse<JsonNode> response = sendCommand("/firestep", new JSONObject().append("mov", newCoords));
+        HttpResponse<JsonNode> response = sendCommand("/firestep", "mov", newCoords);
         checkResponseCode(response);
 
         if (!Double.isNaN(x)) {
@@ -206,9 +202,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     @Override
     public void actuate(ReferenceActuator actuator, boolean on) throws Exception {
         if (actuator.getIndex() == 0) {
-        	JSONObject actuatorField = new JSONObject();
-        	actuatorField.append(String.format("iod{}", actuator.getIndex()), on ? 1 : 0);
-            sendCommand("/firestep", actuatorField);
+            sendCommand("/firestep", String.format("iod{}", actuator.getIndex()), on ? 1 : 0);
         }
     }
 
@@ -243,24 +237,22 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     	return sendCommand(Unirest.get(hostUrl + command));
     }
     
-    public synchronized HttpResponse<JsonNode> sendCommand(String command, String... fields) throws Exception {
+    public synchronized HttpResponse<JsonNode> sendCommand(String command, String field) throws Exception {
     	HttpRequestWithBody jsonCommand = Unirest.post(hostUrl + command);
-    	for (String field: fields) {
-    		jsonCommand.field(field, "");
-    	}
     	
-    	return sendCommand(jsonCommand);
+    	return sendCommand(jsonCommand.field(field, ""));
     }
     
-    public synchronized HttpResponse<JsonNode> sendCommand(String command, JSONObject fields) throws Exception {
+    public synchronized HttpResponse<JsonNode> sendCommand(String command, String key, Object object) throws Exception {
     	HttpRequestWithBody jsonCommand = Unirest.post(hostUrl + command);
-    	Iterator<?> keys = fields.keys();
-    	while (keys.hasNext()) {
-    		String k = keys.next().toString();
-    		jsonCommand.field(k, fields.get(k));
-    	}
     	
-    	return sendCommand(jsonCommand);
+    	return sendCommand(jsonCommand.field(key, object));
+    }
+    
+    public synchronized HttpResponse<JsonNode> sendCommand(String command, String key, Collection<?> fields) throws Exception {
+    	HttpRequestWithBody jsonCommand = Unirest.post(hostUrl + command);
+    	
+    	return sendCommand(jsonCommand.field(key, fields));
     }
     /*
     public synchronized HttpResponse<JsonNode> sendCommand(GetRequest command) throws Exception {
@@ -271,7 +263,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     	return sendCommand(command);
     }*/
 
-    public synchronized HttpResponse<JsonNode> sendCommand(HttpRequest command) throws Exception {
+    public synchronized HttpResponse<JsonNode> sendCommand(BaseRequest command) throws Exception {
     	
     	if (hostUrl == null) {
     		logger.error("Host url is not defined");
