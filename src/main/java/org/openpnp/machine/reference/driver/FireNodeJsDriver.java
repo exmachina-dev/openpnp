@@ -51,7 +51,7 @@ import org.json.JSONArray;
 
 public class FireNodeJsDriver extends AbstractEthernetDriver {
     private static final Logger logger = LoggerFactory.getLogger(FireNodeJsDriver.class);
-    private static final int minimumRequiredVersion = 4; // Version is major * 1000 + minor. Patch number is no checked.
+    private static final int minimumRequiredVersion = 20001; // Version is major * 1000 + minor. Patch number is no checked.
 
     @Attribute(required = false)
     private double feedRateMmPerMinute = 5000;
@@ -100,8 +100,9 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
         if (connectedVersion < minimumRequiredVersion) {
             throw new Exception(String.format(
-                    "This driver requires FireNodeJs version %.2f or higher. You are running version %.2f",
-                    minimumRequiredVersion, connectedVersion));
+                    "This driver requires FireNodeJs version %d.%d or higher. You are running version %.2f",
+                    minimumRequiredVersion / 1000, minimumRequiredVersion - (Math.round(minimumRequiredVersion/1000)),
+                    connectedVersion));
         } else {
         	logger.debug("Version check successful: %.2f", connectedVersion);
         }
