@@ -70,6 +70,8 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     public synchronized void connect() throws Exception {
         super.connect();
         
+        connected = false;
+        
         for (int i = 0; i < 1 && !connected; i++) {
             try {
                 HttpResponse<String> helloResponse = sendCommandAsString("/firenodejs/hello");
@@ -276,6 +278,10 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     	HttpResponse<JsonNode> response;
         synchronized (commandLock) {
             logger.debug("sendCommand({})", command.getHttpRequest().getUrl());
+            logger.debug("{}", command.getHttpRequest().getHeaders());
+            try {
+            	logger.debug("{}", command.getHttpRequest().getBody().getEntity().getContent().toString());
+            } catch (NullPointerException e) { }
             response = command.asJson();
             if (response.getStatus() == 200) {
             	logger.debug("OK");
@@ -304,7 +310,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
             logger.debug("sendCommand({})", c.getHttpRequest().getUrl());
             response = c.asString();
             if (response.getStatus() == 200) {
-            	logger.debug("success");
+            	logger.debug("OK");
             }
 	        if (response.getHeaders().size() == 0) {
 	            throw new Exception("Command did not return a response");
