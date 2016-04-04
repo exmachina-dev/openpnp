@@ -121,13 +121,15 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
             connect();
         }
 
-        // TODO: iod28 switches pin 28 which is the power supply pin on FPD from TW
-        // Should be configurable
-        sendCommand("/firestep", new JSONObject().append("iod28" ,enabled ? "1" : "0"));
-        
-        // TODO: iod5 switches pin 5 which is the end effector led ring on FPD from TW
-        // Should be configurable
-        sendCommand("/firestep", new JSONObject().append("iod5", enabled ? "1" : "0"));
+        if (connected) {
+	        // TODO: iod28 switches pin 28 which is the power supply pin on FPD from TW
+	        // Should be configurable
+	        sendCommand("/firestep", "iod28", enabled ? "1" : "0");
+	        
+	        // TODO: iod5 switches pin 5 which is the end effector led ring on FPD from TW
+	        // Should be configurable
+	        sendCommand("/firestep", "iod5", enabled ? "1" : "0");
+        }
     }
 
     @Override
