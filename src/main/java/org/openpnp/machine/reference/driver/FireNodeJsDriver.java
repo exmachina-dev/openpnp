@@ -262,6 +262,13 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     	}
     }
 
+    private synchronized  void sendMotorConfig() throws Exception {
+        JSONObject motorConfig = new JSONObject();
+        motorConfig.put("xdh", !invertMotorX);
+        motorConfig.put("ydh", !invertMotorY);
+        motorConfig.put("zdh", !invertMotorZ);
+        sendCommand("/firestep", motorConfig);
+    }
     private synchronized  void reset() throws Exception {
         if (beforeResetConfig != "") {
             JsonNode beforeResetObject = new JsonNode(beforeResetConfig);
