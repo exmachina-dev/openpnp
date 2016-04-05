@@ -29,7 +29,7 @@ import org.openpnp.machine.reference.ReferenceActuator;
 import org.openpnp.machine.reference.ReferenceHead;
 import org.openpnp.machine.reference.ReferenceHeadMountable;
 import org.openpnp.machine.reference.ReferenceNozzle;
-import org.openpnp.machine.reference.driver.wizards.AbstractEthernetDriverConfigurationWizard;
+import org.openpnp.machine.reference.driver.wizards.FireNodeJsDriverConfigurationWizard;
 import org.openpnp.model.LengthUnit;
 import org.openpnp.model.Location;
 import org.openpnp.spi.PropertySheetHolder;
@@ -62,6 +62,25 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     private Object movementWaitLock = new Object();
     private boolean connected;
     private int connectedVersion;
+
+    @Element(required = false)
+	public boolean invertMotorX;
+    @Element(required = false)
+    protected boolean invertMotorY;
+    @Element(required = false)
+    protected boolean invertMotorZ;
+    @Element(required = false)
+    protected boolean powerSupplyManagement;
+    @Element(required = false)
+    protected int powerSupplyPin = -1;
+    @Element(required = false)
+    protected int vacuumPumpPin = -1;
+    @Element(required = false)
+    protected int endEffectorLedRingPin = -1;
+    @Element(required = false)
+    protected int upLookingLedRingPin = -1;
+    @Element(required = false)
+    protected String beforeResetConfig = "";
 
     public FireNodeJsDriver() {}
 
@@ -120,13 +139,10 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         }
 
         if (connected) {
-	        // TODO: iod28 switches pin 28 which is the power supply pin on FPD from TW
-	        // Should be configurable
-			sendCommand("/firestep", new JSONObject().put("iod28", enabled));
+            enablePowerSupply(enabled);
 
-			// TODO: iod5 switches pin 5 which is the end effector led ring on FPD from TW
-	        // Should be configurable
-			sendCommand("/firestep", new JSONObject().put("iod5", enabled));
+            enableEndEffectorLedRing(enabled);
+            enableUpLookingLedRing(enabled);
 		}
     }
 
@@ -139,14 +155,14 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
             }
         }
 
-        // TODO: This homeLocation really needs to be Head specific.
         Location homeLocation = this.homeLocation.convertToUnits(LengthUnit.Millimeters);
         JSONObject homeCoords = new JSONObject();
         homeCoords.put("x", homeLocation.getX());
         homeCoords.put("y", homeLocation.getY());
         homeCoords.put("z", homeLocation.getZ());
         homeCoords.put("a", homeLocation.getRotation());
-        sendCommand(Unirest.post(hostUrl + "/firestep").field("mov", homeCoords));
+        HttpResponse<JsonNode> response = sendCommand("/firestep", new JSONObject().put("mov", homeCoords));
+        checkResponseCode(response);
     }
 
     @Override
@@ -166,7 +182,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         newCoords.put("y", y);
         newCoords.put("z", z);
         newCoords.put("a", c);
-        HttpResponse<JsonNode> response = sendCommand(Unirest.post(hostUrl + "/firestep").field("mov", newCoords));
+        HttpResponse<JsonNode> response = sendCommand("/firestep", new JSONObject().put("mov", newCoords));
         checkResponseCode(response);
 
         if (!Double.isNaN(x)) {
@@ -185,12 +201,12 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
     @Override
     public void pick(ReferenceNozzle nozzle) throws Exception {
-        sendCommand("/firepick/place");
+        enableVacuumPum(true);
     }
 
     @Override
     public void place(ReferenceNozzle nozzle) throws Exception {
-        sendCommand("/firestep/pick");
+        enableVacuumPum(true);
     }
 
     @Override
@@ -201,9 +217,33 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
     @Override
     public void actuate(ReferenceActuator actuator, boolean on) throws Exception {
-        if (actuator.getIndex() == 0) {
-            sendCommand("/firestep", new JSONObject().put(String.format("iod{}", actuator.getIndex()), on));
+        if (actuator.getIndex() > 0) {
+            actuate(actuator.getIndex(), on);
         }
+    }
+
+    public void actuate(int index, boolean on) throws Exception {
+        if (index > 0) {
+            sendCommand("/firestep", new JSONObject().put(String.format("iod{}", index), on));
+        }
+    }
+
+    public  void enablePowerSupply(boolean on) throws Exception {
+        if (powerSupplyManagement) {
+            actuate(powerSupplyPin, on);
+        }
+    }
+
+    public  void enableEndEffectorLedRing(boolean on) throws Exception {
+        actuate(endEffectorLedRingPin, on);
+    }
+
+    public  void enableUpLookingLedRing(boolean on) throws Exception {
+        actuate(upLookingLedRingPin, on);
+    }
+
+    public  void enableVacuumPum(boolean on) throws Exception {
+        actuate(vacuumPumpPin, on);
     }
 
     @Override
@@ -220,6 +260,14 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     		String error = getStatusCodeDetails(o.getBody().getObject().getInt("s"));
     		logger.error("Error in response: {}", error);
     	}
+    }
+
+    private synchronized  void reset() throws Exception {
+        if (beforeResetConfig != "") {
+            sendCommand("/reset", new JsonNode(beforeResetConfig).getObject());
+        } else {
+            sendCommand("/reset", new JSONArray());
+        }
     }
 
     public synchronized void disconnect() {
@@ -564,7 +612,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     @Override
     public Wizard getConfigurationWizard() {
         // TODO Auto-generated method stub
-        return new AbstractEthernetDriverConfigurationWizard(this);
+        return new FireNodeJsDriverConfigurationWizard(this);
     }
 
     @Override
@@ -588,4 +636,38 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         // TODO Auto-generated method stub
         return null;
     }
+
+    public boolean getInvertMotorX() { return invertMotorX; }
+
+    public boolean getInvertMotorY() { return invertMotorY; }
+
+    public boolean getInvertMotorZ() { return invertMotorZ; }
+
+    public boolean getPowerSupplyManagement() { return powerSupplyManagement; }
+
+    public int getPowerSupplyPin() { return powerSupplyPin; }
+
+    public int getVacuumPumpPin() { return vacuumPumpPin; }
+
+    public int getEndEffectorLedRingPin() { return endEffectorLedRingPin; }
+
+    public int getUpLookingLedRingPin() { return upLookingLedRingPin; }
+
+    public String getBeforeResetConfig() { return beforeResetConfig; }
+
+    public void setInvertMotorX(boolean invertMotorX) { this.invertMotorX = invertMotorX; }
+
+    public void setInvertMotorY(boolean invertMotorY) { this.invertMotorY = invertMotorY; }
+
+    public void setInvertMotorZ(boolean invertMotorZ) { this.invertMotorZ = invertMotorZ; }
+
+    public void setPowerSupplyManagement(boolean powerSupplyManagement) { this.powerSupplyManagement = powerSupplyManagement; }
+
+    public void setPowerSupplyPin(int powerSupplyPin) { this.powerSupplyPin = powerSupplyPin; }
+
+    public void setEndEffectorLedRingPin(int endEffectorLedRingPin) { this.endEffectorLedRingPin = endEffectorLedRingPin; }
+
+    public void setUpLookingLedRingPin(int upLookingLedRingPin) { this.upLookingLedRingPin = upLookingLedRingPin; }
+
+    public void setBeforeResetConfig(String beforeResetConfig) { this.beforeResetConfig = beforeResetConfig; }
 }
