@@ -139,7 +139,12 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         }
 
         if (connected) {
-            enablePowerSupply(enabled);
+            enablePowerSupply(enabled); // Power supply should be enabled before issuing a reset, otherwise machine cannot home
+
+            if (enabled) {
+                sendMotorConfig();
+                reset();
+            }
 
             enableEndEffectorLedRing(enabled);
             enableUpLookingLedRing(enabled);
