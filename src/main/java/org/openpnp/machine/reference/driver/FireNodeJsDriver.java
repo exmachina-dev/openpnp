@@ -264,9 +264,13 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
     private synchronized  void reset() throws Exception {
         if (beforeResetConfig != "") {
-            sendCommand("/reset", new JsonNode(beforeResetConfig).getObject());
+            JsonNode beforeResetObject = new JsonNode(beforeResetConfig);
+            if (beforeResetObject.isArray())
+                sendCommand("/firestep/reset", beforeResetObject.getArray());
+            else
+                sendCommand("/firestep/reset", beforeResetObject.getObject());
         } else {
-            sendCommand("/reset", new JSONArray());
+            sendCommand("/firestep/reset", "");
         }
     }
 
