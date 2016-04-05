@@ -224,7 +224,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
     public void actuate(int index, boolean on) throws Exception {
         if (index > 0) {
-            sendCommand("/firestep", new JSONObject().put(String.format("iod{}", index), on));
+            sendCommand("/firestep", new JSONObject().put(String.format("iod%d", index), on));
         }
     }
 
