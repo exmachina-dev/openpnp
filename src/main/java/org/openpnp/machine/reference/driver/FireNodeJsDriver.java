@@ -676,6 +676,8 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
     public void setPowerSupplyPin(int powerSupplyPin) { this.powerSupplyPin = powerSupplyPin; }
 
+    public void setVacuumPumpPin(int vacuumPumpPin) { this.vacuumPumpPin = vacuumPumpPin; }
+
     public void setEndEffectorLedRingPin(int endEffectorLedRingPin) { this.endEffectorLedRingPin = endEffectorLedRingPin; }
 
     public void setUpLookingLedRingPin(int upLookingLedRingPin) { this.upLookingLedRingPin = upLookingLedRingPin; }
