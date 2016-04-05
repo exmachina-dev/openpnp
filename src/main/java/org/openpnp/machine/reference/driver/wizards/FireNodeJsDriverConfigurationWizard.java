@@ -186,7 +186,7 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
         lblBeforeResetConfig.setToolTipText("This string is send a start. This allow the machine parameters to be specified. Especially useful for machines without EEPROM.");
         panelAdvancedConfig.add(lblBeforeResetConfig, "2, 2, right, default");
 
-        JTextArea beforeResetConfig = new JTextArea();
+        beforeResetConfig = new JTextArea();
         beforeResetConfig.setRows(5);
         beforeResetConfig.setColumns(100);
         panelAdvancedConfig.add(beforeResetConfig, "4, 2");
@@ -209,6 +209,8 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
         addWrappedBinding(driver, "vacuumPumpPin", vacuumPumpPin, "value");
         addWrappedBinding(driver, "endEffectorLedRingPin", endEffectorLedRingPin, "value");
         addWrappedBinding(driver, "upLookingLedRingPin", upLookingLedRingPin, "value");
+
+        addWrappedBinding(driver, "beforeResetConfig", beforeResetConfig, "text");
     }
 
 
