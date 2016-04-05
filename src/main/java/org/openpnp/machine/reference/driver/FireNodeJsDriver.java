@@ -64,7 +64,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     private int connectedVersion;
 
     @Element(required = false)
-	public boolean invertMotorX;
+	protected boolean invertMotorX;
     @Element(required = false)
     protected boolean invertMotorY;
     @Element(required = false)
