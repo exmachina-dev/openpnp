@@ -206,7 +206,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
     @Override
     public void place(ReferenceNozzle nozzle) throws Exception {
-        enableVacuumPum(true);
+        enableVacuumPum(false);
     }
 
     @Override
