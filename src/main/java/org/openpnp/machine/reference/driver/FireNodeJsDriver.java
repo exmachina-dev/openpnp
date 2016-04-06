@@ -78,7 +78,9 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     @Element(required = false)
     protected int powerSupplyPin = -1;
     @Element(required = false)
-    protected int vacuumPumpPin = -1;
+    protected int vacuumPin = -1;
+    @Element(required = false)
+    protected boolean invertVacuumPin;
     @Element(required = false)
     protected int endEffectorLedRingPin = -1;
     @Element(required = false)
@@ -210,14 +212,15 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         }
     }
 
+
     @Override
     public void pick(ReferenceNozzle nozzle) throws Exception {
-        enableVacuumPum(true);
+        enableVacuumPin(true);
     }
 
     @Override
     public void place(ReferenceNozzle nozzle) throws Exception {
-        enableVacuumPum(false);
+        enableVacuumPin(false);
     }
 
     @Override
@@ -253,8 +256,12 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         actuate(upLookingLedRingPin, on);
     }
 
-    public  void enableVacuumPum(boolean on) throws Exception {
-        actuate(vacuumPumpPin, on);
+    private  void enableVacuumPin(boolean on) throws Exception {
+        if (invertVacuumPin) {
+            actuate(vacuumPin, !on);
+        } else {
+            actuate(vacuumPin, on);
+        }
     }
 
     @Override
@@ -673,7 +680,9 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
     public int getPowerSupplyPin() { return powerSupplyPin; }
 
-    public int getVacuumPumpPin() { return vacuumPumpPin; }
+    public int getVacuumPin() { return vacuumPin; }
+
+    public boolean getInvertVacuumPin() { return invertVacuumPin; }
 
     public int getEndEffectorLedRingPin() { return endEffectorLedRingPin; }
 
@@ -691,7 +700,9 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
     public void setPowerSupplyPin(int powerSupplyPin) { this.powerSupplyPin = powerSupplyPin; }
 
-    public void setVacuumPumpPin(int vacuumPumpPin) { this.vacuumPumpPin = vacuumPumpPin; }
+    public void setVacuumPin(int vacuumPin) { this.vacuumPin = vacuumPin; }
+
+    public void setInvertVacuumPin(boolean invertVacuumPin) { this.invertVacuumPin = invertVacuumPin; }
 
     public void setEndEffectorLedRingPin(int endEffectorLedRingPin) { this.endEffectorLedRingPin = endEffectorLedRingPin; }
 

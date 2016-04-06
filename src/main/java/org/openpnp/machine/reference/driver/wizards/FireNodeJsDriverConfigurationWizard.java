@@ -28,10 +28,11 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
     private JTextArea beforeResetConfig;
     private JSpinner endEffectorLedRingPin;
     private JSpinner upLookingLedRingPin;
-    private JSpinner vacuumPumpPin;
+    private JSpinner vacuumPin;
     private JCheckBox invertMotorX;
     private JCheckBox invertMotorY;
     private JCheckBox invertMotorZ;
+    private JCheckBox invertVacuumPin;
     private JCheckBox powerSupplyCheckBox;
     private JSpinner powerSupplyPin;
 
@@ -142,12 +143,18 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
         powerSupplyPin.setSize(100, 0);
         panelMotors.add(powerSupplyPin, "8, 6, left, center");
 
-        JLabel lblVacuumPump = new JLabel("Vacuum pump pin");
-        panelMotors.add(lblVacuumPump, "2, 8, right, default");
+        JLabel lblVacuumPin = new JLabel("Vacuum pin");
+        panelMotors.add(lblVacuumPin, "2, 8, right, default");
 
-        vacuumPumpPin = new JSpinner();
-        vacuumPumpPin.setSize(100, 100);
-        panelMotors.add(vacuumPumpPin, "4, 8, left, center");
+        vacuumPin = new JSpinner();
+        vacuumPin.setSize(100, 100);
+        panelMotors.add(vacuumPin, "4, 8, left, center");
+
+        JLabel lblInvertVacuumPin = new JLabel("Invert vacuum pin");
+        panelMotors.add(lblInvertVacuumPin, "6, 8, right, default");
+
+        invertVacuumPin = new JCheckBox();
+        panelMotors.add(invertVacuumPin, "8, 8, left, center");
 
         JLabel lblEndEffectorLedRing = new JLabel("End effector led ring pin");
         panelMotors.add(lblEndEffectorLedRing, "2, 10, right, default");
@@ -206,7 +213,10 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
 
         addWrappedBinding(driver, "powerSupplyManagement", powerSupplyCheckBox, "selected");
         addWrappedBinding(driver, "powerSupplyPin", powerSupplyPin, "value");
-        addWrappedBinding(driver, "vacuumPumpPin", vacuumPumpPin, "value");
+
+        addWrappedBinding(driver, "vacuumPin", vacuumPin, "value");
+        addWrappedBinding(driver, "invertVacuumPin", invertVacuumPin, "selected");
+
         addWrappedBinding(driver, "endEffectorLedRingPin", endEffectorLedRingPin, "value");
         addWrappedBinding(driver, "upLookingLedRingPin", upLookingLedRingPin, "value");
 
