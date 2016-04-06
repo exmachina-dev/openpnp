@@ -190,19 +190,33 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         moveTo(new Location(units, x, y, z, c), speed);
     }
     public void moveTo(Location newLocation, double speed) throws Exception {
-        JSONObject newCoords = new JSONObject();
-        newCoords.put("x", newLocation.getX());
-        newCoords.put("y", newLocation.getY());
-        newCoords.put("z", newLocation.getZ());
-        newCoords.put("a", newLocation.getRotation());
-        Location currentLocation = new Location(units, this.x, this.y, this.z, this.c);
-        if (currentLocation.getLinearDistanceTo(newLocation) > 100) {
-            newCoords.put("lpp", true);
-        } else {
-            newCoords.put("lpp", false);
+
+        if (Math.abs(newLocation.getRotation() - c) >= 0.01) {
+            int rotSteps = (int) (newLocation.getRotation() * 3200 / 360);
+            JSONObject newRotation = new JSONObject();
+            newRotation.put("mova", rotSteps);
+            HttpResponse<JsonNode> response = sendCommand("/firestep", newRotation);
+            checkResponseCode(response);
         }
-        HttpResponse<JsonNode> response = sendCommand("/firestep", new JSONObject().put("mov", newCoords));
-        checkResponseCode(response);
+
+        Location currentLocation = new Location(units, this.x, this.y, this.z, this.c);
+        if (currentLocation.getLinearDistanceTo(newLocation) != 0 || this.z != newLocation.getZ())
+        {
+            JSONObject newCoords = new JSONObject();
+            newCoords.put("x", newLocation.getX());
+            newCoords.put("y", newLocation.getY());
+            newCoords.put("z", newLocation.getZ());
+            if (disableLpp) {
+                if (!disableLppForShortMoves && currentLocation.getLinearDistanceTo(newLocation) > 100) {
+                    newCoords.put("lpp", true);
+                } else {
+                    newCoords.put("lpp", false);
+                }
+            }
+
+            HttpResponse<JsonNode> response = sendCommand("/firestep", new JSONObject().put("mov", newCoords));
+            checkResponseCode(response);
+        }
 
         if (!Double.isNaN(newLocation.getX())) {
             this.x = newLocation.getX();
