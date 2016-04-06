@@ -32,6 +32,7 @@ import org.openpnp.machine.reference.ReferenceNozzle;
 import org.openpnp.machine.reference.driver.wizards.FireNodeJsDriverConfigurationWizard;
 import org.openpnp.model.LengthUnit;
 import org.openpnp.model.Location;
+import org.openpnp.spi.Nozzle;
 import org.openpnp.spi.PropertySheetHolder;
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
@@ -163,14 +164,8 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
             }
         }
 
-        JSONObject homeCoords = new JSONObject();
-        homeCoords.put("x", homeLocation.getX());
-        homeCoords.put("y", homeLocation.getY());
-        homeCoords.put("z", homeLocation.getZ());
-        homeCoords.put("a", homeLocation.getRotation());
-        HttpResponse<JsonNode> response = sendCommand("/firestep", new JSONObject().put("mov", homeCoords));
-        checkResponseCode(response);
         Location homeLocation = this.homeLocation.convertToUnits(units);
+        moveTo(homeLocation, feedRateMmPerMinute);
     }
 
     @Override
@@ -180,30 +175,38 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
         location = location.convertToUnits(units);
 
-        double x = location.getX();
-        double y = location.getY();
-        double z = location.getZ();
-        double c = location.getRotation();
+        moveTo(location, speed);
+    }
 
+    public void moveTo(double x, double y, double z, double c, double speed) throws Exception {
+        moveTo(new Location(units, x, y, z, c), speed);
+    }
+    public void moveTo(Location newLocation, double speed) throws Exception {
         JSONObject newCoords = new JSONObject();
-        newCoords.put("x", x);
-        newCoords.put("y", y);
-        newCoords.put("z", z);
-        newCoords.put("a", c);
+        newCoords.put("x", newLocation.getX());
+        newCoords.put("y", newLocation.getY());
+        newCoords.put("z", newLocation.getZ());
+        newCoords.put("a", newLocation.getRotation());
+        Location currentLocation = new Location(units, this.x, this.y, this.z, this.c);
+        if (currentLocation.getLinearDistanceTo(newLocation) > 100) {
+            newCoords.put("lpp", true);
+        } else {
+            newCoords.put("lpp", false);
+        }
         HttpResponse<JsonNode> response = sendCommand("/firestep", new JSONObject().put("mov", newCoords));
         checkResponseCode(response);
 
-        if (!Double.isNaN(x)) {
-            this.x = x;
+        if (!Double.isNaN(newLocation.getX())) {
+            this.x = newLocation.getX();
         }
-        if (!Double.isNaN(y)) {
-            this.y = y;
+        if (!Double.isNaN(newLocation.getY())) {
+            this.y = newLocation.getY();
         }
-        if (!Double.isNaN(z)) {
-            this.z = z;
+        if (!Double.isNaN(newLocation.getZ())) {
+            this.z = newLocation.getZ();
         }
-        if (!Double.isNaN(c)) {
-            this.c = c;
+        if (!Double.isNaN(newLocation.getRotation())) {
+            this.c = newLocation.getRotation();
         }
     }
 
