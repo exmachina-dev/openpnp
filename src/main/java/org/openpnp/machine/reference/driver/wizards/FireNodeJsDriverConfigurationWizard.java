@@ -144,44 +144,66 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
         disableLppForShortMoves = new JCheckBox();
         panelMotors.add(disableLppForShortMoves, "8, 6, left, center");
 
+        // Pins configuration panel
+        JPanel panelPins = new JPanel();
+        panelPins.setBorder(new TitledBorder(null, "Pin configuration", TitledBorder.LEADING,
+                TitledBorder.TOP, null, null));
+        contentPanel.add(panelPins);
+        panelPins.setLayout(
+                new FormLayout(
+                        new ColumnSpec[] {
+                                FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow(3)"),
+                                FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow(3)"),
+                                FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow(3)"),
+                                FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow(3)"),
+                        },
+                        new RowSpec[] {
+                                FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
+                                FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
+                                FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
+                                FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
+                                FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
+                                FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,}));
+
         JLabel lblPowerManagement = new JLabel("Power Management");
-        panelMotors.add(lblPowerManagement, "2, 6, right, default");
+        panelPins.add(lblPowerManagement, "2, 2, right, default");
 
         powerSupplyCheckBox = new JCheckBox("Enable");
-        panelMotors.add(powerSupplyCheckBox, "4, 6, left, center");
+        panelPins.add(powerSupplyCheckBox, "4, 2, left, center");
 
         JLabel lblPowerSupply = new JLabel("Power supply pin");
-        panelMotors.add(lblPowerSupply, "6, 6, right, default");
+        panelPins.add(lblPowerSupply, "6, 2, right, default");
 
         powerSupplyPin = new JSpinner();
         powerSupplyPin.setSize(100, 0);
-        panelMotors.add(powerSupplyPin, "8, 6, left, center");
+        panelPins.add(powerSupplyPin, "8, 2, left, center");
 
         JLabel lblVacuumPin = new JLabel("Vacuum pin");
-        panelMotors.add(lblVacuumPin, "2, 8, right, default");
+        panelPins.add(lblVacuumPin, "2, 4, right, default");
 
         vacuumPin = new JSpinner();
         vacuumPin.setSize(100, 100);
-        panelMotors.add(vacuumPin, "4, 8, left, center");
+        panelPins.add(vacuumPin, "4, 4, left, center");
 
         JLabel lblInvertVacuumPin = new JLabel("Invert vacuum pin");
-        panelMotors.add(lblInvertVacuumPin, "6, 8, right, default");
+        panelPins.add(lblInvertVacuumPin, "6, 4, right, default");
 
         invertVacuumPin = new JCheckBox();
-        panelMotors.add(invertVacuumPin, "8, 8, left, center");
+        panelPins.add(invertVacuumPin, "8, 4, left, center");
 
         JLabel lblEndEffectorLedRing = new JLabel("End effector led ring pin");
-        panelMotors.add(lblEndEffectorLedRing, "2, 10, right, default");
+        panelPins.add(lblEndEffectorLedRing, "2, 6, right, default");
 
         endEffectorLedRingPin = new JSpinner();
-        panelMotors.add(endEffectorLedRingPin, "4, 10, left, center");
+        panelPins.add(endEffectorLedRingPin, "4, 6, left, center");
 
         JLabel lblUpLookingLedRing = new JLabel("Up-looking led ring pin");
-        panelMotors.add(lblUpLookingLedRing, "6, 10, right, default");
+        panelPins.add(lblUpLookingLedRing, "6, 6, right, default");
 
         upLookingLedRingPin = new JSpinner();
-        panelMotors.add(upLookingLedRingPin, "8, 10, left, center");
+        panelPins.add(upLookingLedRingPin, "8, 6, left, center");
 
+        // Advanced configuration
         JPanel panelAdvancedConfig = new JPanel();
         panelAdvancedConfig.setBorder(
                 new TitledBorder(null, "Advanced configuration", TitledBorder.LEADING, TitledBorder.TOP, null, null));
