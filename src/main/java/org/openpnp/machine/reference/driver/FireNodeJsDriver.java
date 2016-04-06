@@ -119,7 +119,6 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
                 versionString = String.format("%d.%d.%d", v.getInt("major"), v.getInt("minor"), v.getInt("patch"));
                 logger.debug("Firenodejs version: {}", versionString);
                 connected = true;
-                break;
             }
             catch (Exception e) {
                 logger.debug("Firmware version check failed", e);
