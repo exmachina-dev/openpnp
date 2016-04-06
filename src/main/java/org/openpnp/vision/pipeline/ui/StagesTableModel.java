@@ -9,9 +9,9 @@ import org.openpnp.vision.pipeline.CvStage;
 
 @SuppressWarnings("serial")
 public class StagesTableModel extends AbstractTableModel implements Reorderable {
-    private static String[] columnNames = {"Enabled", "Name", "Stage"};
+    private static String[] columnNames = {"Name", "Stage"};
 
-    private static Class<?>[] columnClasses = {Boolean.class, String.class, String.class};
+    private static Class<?>[] columnClasses = {String.class, String.class};
 
     private final List<CvStage> stages;
     private final CvPipeline pipeline;
@@ -42,7 +42,7 @@ public class StagesTableModel extends AbstractTableModel implements Reorderable 
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        return columnIndex == 0 || columnIndex == 1;
+        return columnIndex == 0;
     }
 
     @Override
@@ -50,10 +50,8 @@ public class StagesTableModel extends AbstractTableModel implements Reorderable 
         CvStage stage = getStage(rowIndex);
         switch (columnIndex) {
             case 0:
-                return stage.isEnabled();
-            case 1:
                 return stage.getName();
-            case 2:
+            case 1:
                 return stage.getClass().getSimpleName();
         }
         return null;
@@ -62,14 +60,7 @@ public class StagesTableModel extends AbstractTableModel implements Reorderable 
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         CvStage stage = getStage(rowIndex);
-        switch (columnIndex) {
-            case 0:
-                stage.setEnabled((Boolean) aValue);
-                break;
-            case 1:
-                stage.setName(aValue.toString());
-                break;
-        }
+        stage.setName(aValue.toString());
     }
 
     @Override
