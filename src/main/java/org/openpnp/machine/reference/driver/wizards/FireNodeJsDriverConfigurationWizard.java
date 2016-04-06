@@ -32,6 +32,8 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
     private JCheckBox invertMotorX;
     private JCheckBox invertMotorY;
     private JCheckBox invertMotorZ;
+    private JCheckBox invertAxisX;
+    private JCheckBox invertAxisY;
     private JCheckBox disableLppForShortMoves;
     private JCheckBox disableLpp;
     private JCheckBox invertVacuumPin;
@@ -111,8 +113,8 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
                                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
                                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,}));
 
-        JLabel lblAxis = new JLabel("Motors");
-        panelMotors.add(lblAxis, "2, 4, right, default");
+        JLabel lblMotor = new JLabel("Motors");
+        panelMotors.add(lblMotor, "2, 4, right, default");
 
         JLabel label = new JLabel("Invert X");
         panelMotors.add(label, "4, 2, center, center");
@@ -132,17 +134,32 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
         invertMotorZ = new JCheckBox();
         panelMotors.add(invertMotorZ, "8, 4, center, center");
 
+        JLabel lblAxis = new JLabel("Axis");
+        panelMotors.add(lblAxis, "2, 8, right, default");
+
+        JLabel lblInvertAxisX = new JLabel("Invert X");
+        panelMotors.add(lblInvertAxisX, "4, 6, center, center");
+
+        JLabel lblInvertAxisY = new JLabel("Invert Y");
+        panelMotors.add(lblInvertAxisY, "6, 6, center, center");
+
+        invertAxisX = new JCheckBox();
+        panelMotors.add(invertAxisX, "4, 8, center, center");
+
+        invertAxisY = new JCheckBox();
+        panelMotors.add(invertAxisY, "6, 8, center, center");
+
         JLabel lblDisableLpp = new JLabel("Disable LPP");
-        panelMotors.add(lblDisableLpp, "2, 6, right, center");
+        panelMotors.add(lblDisableLpp, "2, 10, right, center");
 
         disableLpp = new JCheckBox();
-        panelMotors.add(disableLpp, "4, 6, left, center");
+        panelMotors.add(disableLpp, "4, 10, left, center");
 
         JLabel lblDisableLpp2 = new JLabel("Disable LPP for short moves");
-        panelMotors.add(lblDisableLpp2, "6, 6, right, center");
+        panelMotors.add(lblDisableLpp2, "6, 10, right, center");
 
         disableLppForShortMoves = new JCheckBox();
-        panelMotors.add(disableLppForShortMoves, "8, 6, left, center");
+        panelMotors.add(disableLppForShortMoves, "8, 10, left, center");
 
         // Pins configuration panel
         JPanel panelPins = new JPanel();
@@ -245,6 +262,9 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
         addWrappedBinding(driver, "invertMotorX", invertMotorX, "selected");
         addWrappedBinding(driver, "invertMotorY", invertMotorY, "selected");
         addWrappedBinding(driver, "invertMotorZ", invertMotorZ, "selected");
+
+        addWrappedBinding(driver, "invertAxisX", invertAxisX, "selected");
+        addWrappedBinding(driver, "invertAxisY", invertAxisY, "selected");
 
         addWrappedBinding(driver, "disableLppForShortMoves", disableLppForShortMoves, "selected");
         addWrappedBinding(driver, "disableLpp", disableLpp, "selected");

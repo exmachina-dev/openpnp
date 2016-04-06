@@ -71,6 +71,10 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     protected boolean invertMotorY;
     @Element(required = false)
     protected boolean invertMotorZ;
+    @Element(required = false)
+    protected boolean invertAxisX;
+    @Element(required = false)
+    protected boolean invertAxisY;
     // LPP
     @Element(required = false)
     protected boolean disableLpp;
@@ -189,6 +193,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     public void moveTo(double x, double y, double z, double c, double speed) throws Exception {
         moveTo(new Location(units, x, y, z, c), speed);
     }
+
     public void moveTo(Location newLocation, double speed) throws Exception {
 
         if (Math.abs(newLocation.getRotation() - c) >= 0.01) {
@@ -203,9 +208,16 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         if (currentLocation.getLinearDistanceTo(newLocation) != 0 || this.z != newLocation.getZ())
         {
             JSONObject newCoords = new JSONObject();
-            newCoords.put("x", newLocation.getX());
-            newCoords.put("y", newLocation.getY());
-            newCoords.put("z", newLocation.getZ());
+            if (!Double.isNaN(newLocation.getX())) {
+                newCoords.put("x", !invertAxisX ? newLocation.getX() : -newLocation.getX());
+            }
+            if (!Double.isNaN(newLocation.getY())) {
+                newCoords.put("y", !invertAxisY ? newLocation.getY() : -newLocation.getY());
+            }
+            if (!Double.isNaN(newLocation.getZ())) {
+                newCoords.put("z", newLocation.getZ());
+            }
+
             if (disableLpp) {
                 if (!disableLppForShortMoves && currentLocation.getLinearDistanceTo(newLocation) > 100) {
                     newCoords.put("lpp", true);
@@ -696,6 +708,10 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
     public boolean getInvertMotorZ() { return invertMotorZ; }
 
+    public boolean getInvertAxisX() { return invertAxisX; }
+
+    public boolean getInvertAxisY() { return invertAxisY; }
+
     public boolean getDisableLpp() { return disableLpp; }
 
     public boolean getDisableLppForShortMoves() { return disableLppForShortMoves; }
@@ -719,6 +735,10 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     public void setInvertMotorY(boolean invertMotorY) { this.invertMotorY = invertMotorY; }
 
     public void setInvertMotorZ(boolean invertMotorZ) { this.invertMotorZ = invertMotorZ; }
+
+    public void setInvertAxisX(boolean invertAxisX) { this.invertAxisX = invertAxisX; }
+
+    public void setInvertAxisY(boolean invertAxisY) { this.invertAxisY = invertAxisY; }
 
     public void setDisableLpp(boolean disable) { this.disableLpp = disable; }
 
