@@ -64,28 +64,34 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     private boolean connected;
     private int connectedVersion;
 
+    // Invert
     @Element(required = false)
 	protected boolean invertMotorX;
     @Element(required = false)
     protected boolean invertMotorY;
     @Element(required = false)
     protected boolean invertMotorZ;
+    // LPP
     @Element(required = false)
     protected boolean disableLpp;
     @Element(required = false)
     protected boolean disableLppForShortMoves;
+    // Power supply
     @Element(required = false)
     protected boolean powerSupplyManagement;
     @Element(required = false)
     protected int powerSupplyPin = -1;
+    // Vacuum
     @Element(required = false)
     protected int vacuumPin = -1;
     @Element(required = false)
     protected boolean invertVacuumPin;
+    // Led rings
     @Element(required = false)
     protected int endEffectorLedRingPin = -1;
     @Element(required = false)
     protected int upLookingLedRingPin = -1;
+    // Advanced config
     @Element(required = false)
     protected String beforeResetConfig = "";
 
