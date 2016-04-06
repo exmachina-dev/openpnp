@@ -32,6 +32,8 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
     private JCheckBox invertMotorX;
     private JCheckBox invertMotorY;
     private JCheckBox invertMotorZ;
+    private JCheckBox disableLppForShortMoves;
+    private JCheckBox disableLpp;
     private JCheckBox invertVacuumPin;
     private JCheckBox powerSupplyCheckBox;
     private JSpinner powerSupplyPin;
@@ -130,6 +132,18 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
         invertMotorZ = new JCheckBox();
         panelMotors.add(invertMotorZ, "8, 4, center, center");
 
+        JLabel lblDisableLpp = new JLabel("Disable LPP");
+        panelMotors.add(lblDisableLpp, "2, 6, right, center");
+
+        disableLpp = new JCheckBox();
+        panelMotors.add(disableLpp, "4, 6, left, center");
+
+        JLabel lblDisableLpp2 = new JLabel("Disable LPP for short moves");
+        panelMotors.add(lblDisableLpp2, "6, 6, right, center");
+
+        disableLppForShortMoves = new JCheckBox();
+        panelMotors.add(disableLppForShortMoves, "8, 6, left, center");
+
         JLabel lblPowerManagement = new JLabel("Power Management");
         panelMotors.add(lblPowerManagement, "2, 6, right, default");
 
@@ -209,6 +223,9 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
         addWrappedBinding(driver, "invertMotorX", invertMotorX, "selected");
         addWrappedBinding(driver, "invertMotorY", invertMotorY, "selected");
         addWrappedBinding(driver, "invertMotorZ", invertMotorZ, "selected");
+
+        addWrappedBinding(driver, "disableLppForShortMoves", disableLppForShortMoves, "selected");
+        addWrappedBinding(driver, "disableLpp", disableLpp, "selected");
 
         addWrappedBinding(driver, "powerSupplyManagement", powerSupplyCheckBox, "selected");
         addWrappedBinding(driver, "powerSupplyPin", powerSupplyPin, "value");

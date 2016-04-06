@@ -71,6 +71,10 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     @Element(required = false)
     protected boolean invertMotorZ;
     @Element(required = false)
+    protected boolean disableLpp;
+    @Element(required = false)
+    protected boolean disableLppForShortMoves;
+    @Element(required = false)
     protected boolean powerSupplyManagement;
     @Element(required = false)
     protected int powerSupplyPin = -1;
@@ -673,6 +677,10 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
     public boolean getInvertMotorZ() { return invertMotorZ; }
 
+    public boolean getDisableLpp() { return disableLpp; }
+
+    public boolean getDisableLppForShortMoves() { return disableLppForShortMoves; }
+
     public boolean getPowerSupplyManagement() { return powerSupplyManagement; }
 
     public int getPowerSupplyPin() { return powerSupplyPin; }
@@ -692,6 +700,10 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     public void setInvertMotorY(boolean invertMotorY) { this.invertMotorY = invertMotorY; }
 
     public void setInvertMotorZ(boolean invertMotorZ) { this.invertMotorZ = invertMotorZ; }
+
+    public void setDisableLpp(boolean disable) { this.disableLpp = disable; }
+
+    public void setDisableLppForShortMoves(boolean disable) { this.disableLppForShortMoves = disable; }
 
     public void setPowerSupplyManagement(boolean powerSupplyManagement) { this.powerSupplyManagement = powerSupplyManagement; }
 
