@@ -24,6 +24,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 import org.openpnp.gui.components.ComponentDecorators;
+import org.openpnp.gui.support.IntegerConverter;
 import org.openpnp.machine.reference.camera.HttpCamera;
 import org.openpnp.machine.reference.camera.ImageCamera;
 import org.openpnp.machine.reference.wizards.ReferenceCameraConfigurationWizard;
@@ -42,7 +43,9 @@ public class HttpCameraConfigurationWizard extends ReferenceCameraConfigurationW
 
     private JPanel panelGeneral;
     private JLabel lblSourceUrl;
+    private JLabel lblRefreshInterval;
     private JTextField textFieldSourceUrl;
+    private JTextField textFieldRefreshInterval;
     private JButton btnBrowse;
 
     public HttpCameraConfigurationWizard(HttpCamera camera) {
@@ -58,7 +61,8 @@ public class HttpCameraConfigurationWizard extends ReferenceCameraConfigurationW
                 new ColumnSpec[] {FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
                         FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow"),
                         FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,},
-                new RowSpec[] {FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,}));
+                new RowSpec[] {FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
+                        FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,}));
 
         lblSourceUrl = new JLabel("Source URL");
         panelGeneral.add(lblSourceUrl, "2, 2, right, default");
@@ -69,12 +73,22 @@ public class HttpCameraConfigurationWizard extends ReferenceCameraConfigurationW
 
         btnBrowse = new JButton(browseAction);
         panelGeneral.add(btnBrowse, "6, 2");
+
+        lblRefreshInterval = new JLabel("Refresh interval");
+        panelGeneral.add(lblRefreshInterval, "2, 4, right, default");
+
+        textFieldRefreshInterval = new JTextField();
+        textFieldRefreshInterval.setToolTipText("Specify wait time (in milliseconds)");
+        panelGeneral.add(textFieldRefreshInterval, "4, 2, left, default");
+        textFieldRefreshInterval.setColumns(10);
     }
 
     @Override
     public void createBindings() {
         super.createBindings();
+        IntegerConverter integerConverter = new IntegerConverter();
         addWrappedBinding(camera, "sourceUri", textFieldSourceUrl, "text");
+        addWrappedBinding(camera, "refreshInterval", textFieldSourceUrl, "text", integerConverter);
         ComponentDecorators.decorateWithAutoSelect(textFieldSourceUrl);
     }
 

@@ -48,7 +48,7 @@ public class HttpCamera extends ReferenceCamera implements Runnable {
     private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     @Attribute(required = false)
-    private int fps = 1;
+    private int refreshInterval = 500;
 
     @Element
     private String sourceUri = "classpath://samples/pnp-test/pnp-test.png";
@@ -117,6 +117,15 @@ public class HttpCamera extends ReferenceCamera implements Runnable {
         pcs.firePropertyChange("sourceUri", oldValue, sourceUri);
         initialize();
     }
+    public int getRefreshInterval() {
+        return refreshInterval;
+    }
+
+    public void setRefreshInterval(int refreshInterval) throws Exception {
+        int oldValue = this.refreshInterval;
+        this.refreshInterval = refreshInterval;
+        pcs.firePropertyChange("refreshInterval", oldValue, refreshInterval);
+    }
 
     @Override
     public synchronized BufferedImage capture() {
@@ -157,7 +166,7 @@ public class HttpCamera extends ReferenceCamera implements Runnable {
             BufferedImage frame = capture();
             broadcastCapture(frame);
             try {
-                Thread.sleep(1000 / fps);
+                Thread.sleep(refreshInterval);
             }
             catch (InterruptedException e) {
                 return;
