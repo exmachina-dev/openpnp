@@ -190,7 +190,7 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,}));
 
         JLabel lblBeforeResetConfig = new JLabel("Reset config");
-        lblBeforeResetConfig.setToolTipText("This string is send a start. This allow the machine parameters to be specified. Especially useful for machines without EEPROM.");
+        lblBeforeResetConfig.setToolTipText("This string is send at start. This allow the machine parameters to be specified. Especially useful for machines without EEPROM.");
         panelAdvancedConfig.add(lblBeforeResetConfig, "2, 2, right, default");
 
         beforeResetConfig = new JTextArea();
