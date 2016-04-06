@@ -19,8 +19,6 @@
 
 package org.openpnp.machine.reference.driver;
 
-import java.util.Collection;
-
 import javax.swing.Action;
 
 import org.openpnp.gui.support.PropertySheetWizardAdapter;
@@ -45,7 +43,6 @@ import com.mashape.unirest.request.HttpRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -242,17 +239,17 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         }
     }
 
-    public  void enablePowerSupply(boolean on) throws Exception {
+    private  void enablePowerSupply(boolean on) throws Exception {
         if (powerSupplyManagement) {
             actuate(powerSupplyPin, on);
         }
     }
 
-    public  void enableEndEffectorLedRing(boolean on) throws Exception {
+    private  void enableEndEffectorLedRing(boolean on) throws Exception {
         actuate(endEffectorLedRingPin, on);
     }
 
-    public  void enableUpLookingLedRing(boolean on) throws Exception {
+    private  void enableUpLookingLedRing(boolean on) throws Exception {
         actuate(upLookingLedRingPin, on);
     }
 
