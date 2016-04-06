@@ -30,7 +30,7 @@ public abstract class AbstractEthernetDriver implements ReferenceDriver, Closeab
     @Attribute(required = false)
     protected int connectionTimeout = 1000; // 1s to etablish connection
     @Attribute(required = false)
-    protected int socketTimeout = 100000; // 10s to receive data
+    protected int socketTimeout = 10000; // 10s to receive data
     
     protected String hostUrl;
 
