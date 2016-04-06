@@ -57,6 +57,9 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     @Element(required = false)
     private Location homeLocation = new Location(LengthUnit.Millimeters);
 
+    @Attribute(required = false)
+    protected LengthUnit units = LengthUnit.Millimeters;
+
     private double x, y, z, c;
     private Object commandLock = new Object();
     private Object movementWaitLock = new Object();
@@ -160,7 +163,6 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
             }
         }
 
-        Location homeLocation = this.homeLocation.convertToUnits(LengthUnit.Millimeters);
         JSONObject homeCoords = new JSONObject();
         homeCoords.put("x", homeLocation.getX());
         homeCoords.put("y", homeLocation.getY());
@@ -168,6 +170,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         homeCoords.put("a", homeLocation.getRotation());
         HttpResponse<JsonNode> response = sendCommand("/firestep", new JSONObject().put("mov", homeCoords));
         checkResponseCode(response);
+        Location homeLocation = this.homeLocation.convertToUnits(units);
     }
 
     @Override
@@ -175,7 +178,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
             throws Exception {
         location = location.subtract(hm.getHeadOffsets());
 
-        location = location.convertToUnits(LengthUnit.Millimeters);
+        location = location.convertToUnits(units);
 
         double x = location.getX();
         double y = location.getY();
@@ -253,7 +256,11 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
     @Override
     public Location getLocation(ReferenceHeadMountable hm) {
-        return new Location(LengthUnit.Millimeters, x, y, z, c).add(hm.getHeadOffsets());
+        Location location = new Location(units, x, y, z, c).add(hm.getHeadOffsets());
+        if (!(hm instanceof Nozzle)) {
+            location = location.derive(null, null, 0d, null);
+        }
+        return location;
     }
 
     private void checkResponseCode(HttpResponse<JsonNode> o) {
