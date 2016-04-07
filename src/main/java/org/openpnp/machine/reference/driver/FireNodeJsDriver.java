@@ -212,10 +212,24 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         {
             JSONObject newCoords = new JSONObject();
             if (!Double.isNaN(newLocation.getX())) {
-                newCoords.put("x", !invertAxisX ? newLocation.getX() : -newLocation.getX());
+                double newX;
+                if (newLocation.getX() == 0)
+                {
+                    newX = 0;
+                } else {
+                    newX = !invertAxisX ? newLocation.getX() : -1 * newLocation.getX();
+                }
+                newCoords.put("x", newX);
             }
             if (!Double.isNaN(newLocation.getY())) {
-                newCoords.put("y", !invertAxisY ? newLocation.getY() : -newLocation.getY());
+                double newY;
+                if (newLocation.getY() == 0)
+                {
+                    newY = 0;
+                } else {
+                    newY = !invertAxisY ? newLocation.getY() : -1 * newLocation.getY();
+                }
+                newCoords.put("y", newY);
             }
             if (!Double.isNaN(newLocation.getZ())) {
                 newCoords.put("z", newLocation.getZ());
