@@ -139,11 +139,13 @@ public class HttpCamera extends ReferenceCamera implements Runnable {
 
         try {
             source = ImageIO.read(new URL(sourceUri));
+            gFrame.drawImage(source, 0, 0, source.getWidth(), source.getHeight(), null);
         } catch (Exception e) {
-            return transformImage(frame);
+            gFrame.drawString("Unable to get image from", 100, 20);
+            gFrame.drawString(sourceUri, 100, 40);
+            gFrame.drawLine(0, 0, width, height);
+            gFrame.drawLine(0, height, width, 0);
         }
-
-        gFrame.drawImage(source, 0, 0, source.getWidth(), source.getHeight(), null);
 
         gFrame.dispose();
 
@@ -152,8 +154,6 @@ public class HttpCamera extends ReferenceCamera implements Runnable {
 
     private synchronized void initialize() throws Exception {
         stop();
-
-        source = ImageIO.read(new URL(sourceUri));
 
         if (listeners.size() > 0) {
             start();
