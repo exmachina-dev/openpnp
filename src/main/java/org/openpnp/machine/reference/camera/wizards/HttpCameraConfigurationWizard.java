@@ -79,7 +79,7 @@ public class HttpCameraConfigurationWizard extends ReferenceCameraConfigurationW
 
         textFieldRefreshInterval = new JTextField();
         textFieldRefreshInterval.setToolTipText("Specify wait time (in milliseconds)");
-        panelGeneral.add(textFieldRefreshInterval, "4, 2, left, default");
+        panelGeneral.add(textFieldRefreshInterval, "4, 4, left, default");
         textFieldRefreshInterval.setColumns(10);
     }
 
