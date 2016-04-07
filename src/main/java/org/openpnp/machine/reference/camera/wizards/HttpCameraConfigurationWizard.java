@@ -46,7 +46,6 @@ public class HttpCameraConfigurationWizard extends ReferenceCameraConfigurationW
     private JLabel lblRefreshInterval;
     private JTextField textFieldSourceUrl;
     private JTextField textFieldRefreshInterval;
-    private JButton btnBrowse;
 
     public HttpCameraConfigurationWizard(HttpCamera camera) {
         super(camera);
@@ -59,8 +58,7 @@ public class HttpCameraConfigurationWizard extends ReferenceCameraConfigurationW
                 "General", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
         panelGeneral.setLayout(new FormLayout(
                 new ColumnSpec[] {FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
-                        FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow"),
-                        FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,},
+                        FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow")},
                 new RowSpec[] {FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,}));
 
@@ -71,53 +69,22 @@ public class HttpCameraConfigurationWizard extends ReferenceCameraConfigurationW
         panelGeneral.add(textFieldSourceUrl, "4, 2, fill, default");
         textFieldSourceUrl.setColumns(10);
 
-        btnBrowse = new JButton(browseAction);
-        panelGeneral.add(btnBrowse, "6, 2");
-
         lblRefreshInterval = new JLabel("Refresh interval");
         panelGeneral.add(lblRefreshInterval, "2, 4, right, default");
 
         textFieldRefreshInterval = new JTextField();
-        textFieldRefreshInterval.setToolTipText("Specify wait time (in milliseconds)");
+        textFieldRefreshInterval.setToolTipText("Specify wait time between refresh (in milliseconds)");
         panelGeneral.add(textFieldRefreshInterval, "4, 4, left, default");
-        textFieldRefreshInterval.setColumns(10);
+        textFieldRefreshInterval.setColumns(8);
     }
 
     @Override
     public void createBindings() {
         super.createBindings();
         IntegerConverter integerConverter = new IntegerConverter();
-        addWrappedBinding(camera, "sourceUri", textFieldSourceUrl, "text");
-        addWrappedBinding(camera, "refreshInterval", textFieldSourceUrl, "text", integerConverter);
+        addWrappedBinding(camera, "sourceUrl", textFieldSourceUrl, "text");
+        addWrappedBinding(camera, "refreshInterval", textFieldRefreshInterval, "text", integerConverter);
         ComponentDecorators.decorateWithAutoSelect(textFieldSourceUrl);
+        ComponentDecorators.decorateWithAutoSelect(textFieldRefreshInterval);
     }
-
-    private Action browseAction = new AbstractAction() {
-        {
-            putValue(NAME, "Browse");
-            putValue(SHORT_DESCRIPTION, "Browse");
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            FileDialog fileDialog = new FileDialog((Frame) getTopLevelAncestor());
-            fileDialog.setFilenameFilter(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    String[] extensions = new String[] {".png", ".jpg", ".gif", ".tif", ".tiff"};
-                    for (String extension : extensions) {
-                        if (name.toLowerCase().endsWith(extension)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-            });
-            fileDialog.setVisible(true);
-            if (fileDialog.getFile() == null) {
-                return;
-            }
-            File file = new File(new File(fileDialog.getDirectory()), fileDialog.getFile());
-            textFieldSourceUrl.setText(file.toURI().toString());
-        }
-    };
 }

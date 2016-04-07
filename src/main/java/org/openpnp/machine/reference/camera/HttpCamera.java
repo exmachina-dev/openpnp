@@ -25,7 +25,6 @@ import org.openpnp.gui.support.Wizard;
 import org.openpnp.gui.wizards.CameraConfigurationWizard;
 import org.openpnp.machine.reference.ReferenceCamera;
 import org.openpnp.machine.reference.camera.wizards.HttpCameraConfigurationWizard;
-import org.openpnp.machine.reference.camera.wizards.ImageCameraConfigurationWizard;
 import org.openpnp.model.LengthUnit;
 import org.openpnp.model.Location;
 import org.openpnp.spi.PropertySheetHolder;
@@ -51,7 +50,7 @@ public class HttpCamera extends ReferenceCamera implements Runnable {
     private int refreshInterval = 500;
 
     @Element
-    private String sourceUri = "classpath://samples/pnp-test/pnp-test.png";
+    private String sourceUrl;
 
     @Attribute(required = false)
     private int width = 640;
@@ -70,7 +69,7 @@ public class HttpCamera extends ReferenceCamera implements Runnable {
     @SuppressWarnings("unused")
     @Commit
     private void commit() throws Exception {
-        setSourceUri(sourceUri);
+        setSourceUrl(sourceUrl);
     }
 
     @Override
@@ -107,14 +106,14 @@ public class HttpCamera extends ReferenceCamera implements Runnable {
         }
     }
 
-    public String getSourceUri() {
-        return sourceUri;
+    public String getSourceUrl() {
+        return sourceUrl;
     }
 
-    public void setSourceUri(String sourceUri) throws Exception {
-        String oldValue = this.sourceUri;
-        this.sourceUri = sourceUri;
-        pcs.firePropertyChange("sourceUri", oldValue, sourceUri);
+    public void setSourceUrl(String sourceUrl) throws Exception {
+        String oldValue = this.sourceUrl;
+        this.sourceUrl = sourceUrl;
+        pcs.firePropertyChange("sourceUrl", oldValue, sourceUrl);
         initialize();
     }
     public int getRefreshInterval() {
@@ -138,11 +137,11 @@ public class HttpCamera extends ReferenceCamera implements Runnable {
         Graphics gFrame = frame.getGraphics();
 
         try {
-            source = ImageIO.read(new URL(sourceUri));
+            source = ImageIO.read(new URL(sourceUrl));
             gFrame.drawImage(source, 0, 0, source.getWidth(), source.getHeight(), null);
         } catch (Exception e) {
             gFrame.drawString("Unable to get image from", 100, 20);
-            gFrame.drawString(sourceUri, 100, 40);
+            gFrame.drawString(sourceUrl, 100, 40);
             gFrame.drawLine(0, 0, width, height);
             gFrame.drawLine(0, height, width, 0);
         }
