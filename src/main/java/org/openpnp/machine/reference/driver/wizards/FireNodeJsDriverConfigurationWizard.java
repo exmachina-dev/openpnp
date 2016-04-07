@@ -193,13 +193,14 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
 
         powerSupplyPin = new JSpinner();
         powerSupplyPin.setSize(100, 0);
+        ((JSpinner.DefaultEditor) powerSupplyPin.getEditor()).getTextField().setColumns(4);
         panelPins.add(powerSupplyPin, "8, 2, left, center");
 
         JLabel lblVacuumPin = new JLabel("Vacuum pin");
         panelPins.add(lblVacuumPin, "2, 4, right, default");
 
         vacuumPin = new JSpinner();
-        vacuumPin.setSize(100, 100);
+        ((JSpinner.DefaultEditor) vacuumPin.getEditor()).getTextField().setColumns(4);
         panelPins.add(vacuumPin, "4, 4, left, center");
 
         JLabel lblInvertVacuumPin = new JLabel("Invert vacuum pin");
@@ -212,12 +213,14 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
         panelPins.add(lblEndEffectorLedRing, "2, 6, right, default");
 
         endEffectorLedRingPin = new JSpinner();
+        ((JSpinner.DefaultEditor) endEffectorLedRingPin.getEditor()).getTextField().setColumns(4);
         panelPins.add(endEffectorLedRingPin, "4, 6, left, center");
 
         JLabel lblUpLookingLedRing = new JLabel("Up-looking led ring pin");
         panelPins.add(lblUpLookingLedRing, "6, 6, right, default");
 
         upLookingLedRingPin = new JSpinner();
+        ((JSpinner.DefaultEditor) upLookingLedRingPin.getEditor()).getTextField().setColumns(4);
         panelPins.add(upLookingLedRingPin, "8, 6, left, center");
 
         // Advanced configuration
