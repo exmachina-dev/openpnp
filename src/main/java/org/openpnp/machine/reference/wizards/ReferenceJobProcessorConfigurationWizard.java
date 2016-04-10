@@ -21,8 +21,11 @@ package org.openpnp.machine.reference.wizards;
 
 import java.awt.Color;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
@@ -38,6 +41,7 @@ public class ReferenceJobProcessorConfigurationWizard extends AbstractConfigurat
     private final ReferenceJobProcessor jobProcessor;
     private JPanel panelGeneral;
     private JCheckBox chckbxDemoMode;
+    private JButton btnGo;
 
     public ReferenceJobProcessorConfigurationWizard(ReferenceJobProcessor jobProcessor) {
         this.jobProcessor = jobProcessor;
@@ -48,20 +52,27 @@ public class ReferenceJobProcessorConfigurationWizard extends AbstractConfigurat
         contentPanel.add(panelGeneral);
         panelGeneral
                 .setLayout(
-                        new FormLayout(
-                                new ColumnSpec[] {FormSpecs.RELATED_GAP_COLSPEC,
-                                        FormSpecs.DEFAULT_COLSPEC, FormSpecs.RELATED_GAP_COLSPEC,
-                                        ColumnSpec.decode("default:grow"),
-                                        FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec
-                                                .decode("default:grow"),
-                                FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow"),
-                                FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow"),},
-                        new RowSpec[] {FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,}));
+                        new FormLayout(new ColumnSpec[] {
+                FormSpecs.RELATED_GAP_COLSPEC,
+                FormSpecs.DEFAULT_COLSPEC,
+                FormSpecs.RELATED_GAP_COLSPEC,
+                ColumnSpec.decode("default:grow"),
+                FormSpecs.RELATED_GAP_COLSPEC,
+                ColumnSpec.decode("default:grow"),
+                FormSpecs.RELATED_GAP_COLSPEC,
+                ColumnSpec.decode("default:grow"),
+                FormSpecs.RELATED_GAP_COLSPEC,
+                ColumnSpec.decode("default:grow"),
+                FormSpecs.RELATED_GAP_COLSPEC,
+                ColumnSpec.decode("default:grow"),},
+            new RowSpec[] {
+                FormSpecs.RELATED_GAP_ROWSPEC,
+                FormSpecs.DEFAULT_ROWSPEC,}));
 
         chckbxDemoMode = new JCheckBox("Demo Mode?");
         panelGeneral.add(chckbxDemoMode, "2, 2");
     }
-
+    
     @Override
     public void createBindings() {
         addWrappedBinding(jobProcessor, "demoMode", chckbxDemoMode, "selected");
