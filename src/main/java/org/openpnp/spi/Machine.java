@@ -170,8 +170,4 @@ public interface Machine extends WizardConfigurable, PropertySheetHolder, Closea
             boolean ignoreEnabled);
 
     public Head getDefaultHead() throws Exception;
-    
-    public PartAlignment getPartAlignment();
-    
-    public FiducialLocator getFiducialLocator();
 }
