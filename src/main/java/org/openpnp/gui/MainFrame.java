@@ -248,7 +248,8 @@ public class MainFrame extends JFrame {
         menuBar.add(mnCommands);
 
         mnCommands.add(new JMenuItem(machineControlsPanel.homeAction));
-        mnCommands.add(new JMenuItem(machineControlsPanel.showHideJogControlsWindowAction));
+        mnCommands.addSeparator();
+        mnCommands.add(new JMenuItem(machineControlsPanel.startStopMachineAction));
 
         // Help
         /////////////////////////////////////////////////////////////////////
@@ -311,11 +312,9 @@ public class MainFrame extends JFrame {
         hotkeyActionMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PERIOD, mask),
                 machineControlsPanel.getJogControlsPanel().cMinusAction);
         hotkeyActionMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, mask),
-                machineControlsPanel.lowerIncrementAction);
+                machineControlsPanel.getJogControlsPanel().lowerIncrementAction);
         hotkeyActionMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, mask),
-                machineControlsPanel.raiseIncrementAction);
-        hotkeyActionMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, mask),
-                machineControlsPanel.showHideJogControlsWindowAction);
+                machineControlsPanel.getJogControlsPanel().raiseIncrementAction);
 
         Toolkit.getDefaultToolkit().getSystemEventQueue().push(new EventQueue() {
             @Override
@@ -393,7 +392,7 @@ public class MainFrame extends JFrame {
             navigationPanel = new FxNavigationView();
             camerasAndNavTabbedPane = new JTabbedPane(JTabbedPane.TOP);
             camerasAndNavTabbedPane.addTab("Cameras", null, cameraPanel, null);
-            camerasAndNavTabbedPane.addTab("Navigation", null, navigationPanel, null);            
+            camerasAndNavTabbedPane.addTab("Navigation", null, navigationPanel, null);
             panelCameraAndInstructions.add(camerasAndNavTabbedPane, BorderLayout.CENTER);
         }
         else {
