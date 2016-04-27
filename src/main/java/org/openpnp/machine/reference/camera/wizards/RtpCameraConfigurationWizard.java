@@ -35,11 +35,11 @@ import java.awt.*;
 
 @SuppressWarnings("serial")
 public class RtpCameraConfigurationWizard extends ReferenceCameraConfigurationWizard {
-    private final OpenCvCamera camera;
+    private final RtpCamera camera;
 
     private JPanel panelGeneral;
 
-    public RtpCameraConfigurationWizard(OpenCvCamera camera) {
+    public RtpCameraConfigurationWizard(RtpCamera camera) {
         super(camera);
 
         this.camera = camera;
@@ -104,9 +104,6 @@ public class RtpCameraConfigurationWizard extends ReferenceCameraConfigurationWi
     @Override
     protected void saveToModel() {
         super.saveToModel();
-        if (camera.isDirty()) {
-            camera.setDeviceIndex(camera.getDeviceIndex());
-        }
     }
 
     private JComboBox comboBoxDeviceIndex;
