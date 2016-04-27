@@ -23,8 +23,10 @@ import java.util.Set;
 
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.reference.wizards.ReferenceJobProcessorConfigurationWizard;
+import org.openpnp.model.Board;
 import org.openpnp.model.BoardLocation;
 import org.openpnp.model.Configuration;
+import org.openpnp.model.LengthUnit;
 import org.openpnp.model.Location;
 import org.openpnp.model.Part;
 import org.openpnp.model.Placement;
@@ -37,10 +39,11 @@ import org.openpnp.spi.JobPlanner.PlacementSolution;
 import org.openpnp.spi.Machine;
 import org.openpnp.spi.Nozzle;
 import org.openpnp.spi.NozzleTip;
-import org.openpnp.spi.VisionProvider;
 import org.openpnp.spi.base.AbstractJobProcessor;
 import org.openpnp.util.Utils2D;
+import org.openpnp.vision.BottomVision;
 import org.openpnp.vision.FiducialLocator;
+import org.openpnp.vision.pipeline.CvPipeline;
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.core.Commit;
@@ -70,7 +73,17 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
     @Element(required = false)
     private JobPlanner jobPlanner;
 
+    // TODO: This will be moved into BottomVision and referenced there instead.
+    @Element(required = false)
+    private CvPipeline bottomVisionPipeline = new CvPipeline("               <bottom-vision-pipeline>\n                  <stages>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.ImageRead\" name=\"16\" enabled=\"false\" file=\"/Users/jason/Desktop/input 2.png\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.ImageCapture\" name=\"0\" enabled=\"true\" settle-first=\"true\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.ImageWrite\" name=\"15\" enabled=\"true\" file=\"/Users/jason/Desktop/input.png\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.BlurGaussian\" name=\"10\" enabled=\"true\" kernel-size=\"9\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.MaskCircle\" name=\"4\" enabled=\"true\" diameter=\"525\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.ConvertColor\" name=\"1\" enabled=\"true\" conversion=\"Bgr2HsvFull\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.MaskHsv\" name=\"2\" enabled=\"true\" hue-min=\"60\" hue-max=\"130\" saturation-min=\"0\" saturation-max=\"255\" value-min=\"0\" value-max=\"255\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.ConvertColor\" name=\"3\" enabled=\"true\" conversion=\"Hsv2BgrFull\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.ConvertColor\" name=\"6\" enabled=\"true\" conversion=\"Bgr2Gray\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.Threshold\" name=\"12\" enabled=\"true\" threshold=\"100\" auto=\"false\" invert=\"false\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.FindContours\" name=\"5\" enabled=\"true\" retrieval-mode=\"List\" approximation-method=\"None\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.FilterContours\" name=\"9\" enabled=\"true\" contours-stage-name=\"5\" min-area=\"50.0\" max-area=\"900000.0\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.MaskCircle\" name=\"11\" enabled=\"true\" diameter=\"0\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.DrawContours\" name=\"7\" enabled=\"true\" contours-stage-name=\"9\" thickness=\"2\" index=\"-1\">\n                        <color r=\"255\" g=\"255\" b=\"255\" a=\"255\"/>\n                     </cv-stage>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.MinAreaRect\" name=\"result\" enabled=\"true\" threshold-min=\"100\" threshold-max=\"255\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.ImageRecall\" name=\"14\" enabled=\"true\" image-stage-name=\"0\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.DrawRotatedRects\" name=\"8\" enabled=\"true\" rotated-rects-stage-name=\"result\" thickness=\"2\"/>\n                     <cv-stage class=\"org.openpnp.vision.pipeline.stages.ImageWrite\" name=\"13\" enabled=\"true\" file=\"/Users/jason/Desktop/result.png\"/>\n                  </stages>\n               </bottom-vision-pipeline>\n");
+
+    BottomVision bottomVision;
+
     public ReferenceJobProcessor() {}
+
+    public CvPipeline getBottomVisionPipeline() {
+        return bottomVisionPipeline;
+    }
 
     @SuppressWarnings("unused")
     @Commit
@@ -91,6 +104,8 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
         fireJobStateChanged();
 
         Machine machine = Configuration.get().getMachine();
+
+        bottomVision = new BottomVision(bottomVisionPipeline);
 
         preProcessJob(machine);
 
@@ -162,26 +177,36 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
                 Placement placement = solution.placement;
                 Part part = placement.getPart();
 
-                fireDetailedStatusUpdated(String.format("Perform bottom vision"));
-
-                if (!shouldJobProcessingContinue()) {
-                    return;
-                }
-
-                Location bottomVisionOffsets;
+                Location bottomVisionOffsets = null;
                 try {
-                    bottomVisionOffsets = performBottomVision(machine, part, nozzle);
+                    bottomVisionOffsets = bottomVision.findOffsets(part, nozzle);
                 }
                 catch (Exception e) {
-                    fireJobEncounteredError(JobError.PartError, e.getMessage());
-                    return;
+                    e.printStackTrace();
                 }
 
-                Location placementLocation = placement.getLocation();
+                Location placementLocation = Utils2D.calculateBoardPlacementLocation(bl, placement.getLocation());
+                
                 if (bottomVisionOffsets != null) {
-                    placementLocation = placementLocation.subtractWithRotation(bottomVisionOffsets);
+                    // Rotate the point 0,0 using the bottom offsets as a center point by the angle that is
+                    // the difference between the bottom vision angle and the calculated global placement angle.
+                    Location location = new Location(LengthUnit.Millimeters).rotateXyCenterPoint(
+                            bottomVisionOffsets, 
+                            placementLocation.getRotation() - bottomVisionOffsets.getRotation());
+                    
+                    // Set the angle to the difference mentioned above, aligning the part to the same angle as
+                    // the placement.
+                    location = location.derive(null, null, null, placementLocation.getRotation() - bottomVisionOffsets.getRotation());
+                    
+                    // Add the placement final location to move our local coordinate into global space
+                    location = location.add(placementLocation);
+
+                    // Subtract the bottom vision offsets to move the part to the final location, instead of
+                    // the nozzle.
+                    location = location.subtract(bottomVisionOffsets);
+                    
+                    placementLocation = location;
                 }
-                placementLocation = Utils2D.calculateBoardPlacementLocation(bl, placementLocation);
 
                 // Update the placementLocation with the proper Z value. This is
                 // the distance to the top of the board plus the height of
@@ -338,35 +363,6 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
             Location location = locator.locateBoard(boardLocation);
             boardLocation.setLocation(location);
         }
-    }
-
-    protected Location performBottomVision(Machine machine, Part part, Nozzle nozzle)
-            throws Exception {
-        // TODO: I think this stuff actually belongs in VisionProvider but
-        // I have not yet fully thought through the API.
-
-        // Find the first fixed camera
-        if (machine.getCameras().isEmpty()) {
-            // TODO: return null for now to indicate that no vision was
-            // calculated. In the future we may want this to be based on
-            // configuration.
-            return null;
-        }
-        Camera camera = machine.getCameras().get(0);
-
-        // Get it's vision provider
-        VisionProvider vp = camera.getVisionProvider();
-        if (vp == null) {
-            // TODO: return null for now to indicate that no vision was
-            // calculated. In the future we may want this to be based on
-            // configuration.
-            return null;
-        }
-
-        // Perform the operation. Note that similar to feeding and nozzle
-        // tip changing, it is up to the VisionProvider to move the camera
-        // and nozzle to where it needs to be.
-        return vp.getPartBottomOffsets(part, nozzle);
     }
 
     protected boolean changeNozzleTip(Nozzle nozzle, NozzleTip nozzleTip) {
