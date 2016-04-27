@@ -41,7 +41,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeSupport;
 import java.net.URL;
-import javax.media.rtp.*;
 
 public class RtpCamera extends ReferenceCamera implements Runnable {
     private final static Logger logger = LoggerFactory.getLogger(RtpCamera.class);
@@ -64,7 +63,7 @@ public class RtpCamera extends ReferenceCamera implements Runnable {
 
     private Thread thread;
 
-    private RTPSocket rtpSocket;
+    //private RTPSocket rtpSocket;
 
     public RtpCamera() {
         unitsPerPixel = new Location(LengthUnit.Inches, 0.04233, 0.04233, 0, 0);
