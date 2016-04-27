@@ -45,6 +45,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableRowSorter;
 
 import org.openpnp.gui.components.AutoSelectTextTable;
+import org.openpnp.gui.support.ActionGroup;
 import org.openpnp.gui.support.Helpers;
 import org.openpnp.gui.support.Icons;
 import org.openpnp.gui.support.IdentifiableListCellRenderer;
@@ -53,7 +54,12 @@ import org.openpnp.gui.support.MessageBoxes;
 import org.openpnp.gui.support.PackagesComboBoxModel;
 import org.openpnp.gui.tablemodel.PartsTableModel;
 import org.openpnp.model.Configuration;
+import org.openpnp.model.Location;
 import org.openpnp.model.Part;
+import org.openpnp.spi.Feeder;
+import org.openpnp.spi.Nozzle;
+import org.openpnp.util.MovableUtils;
+import org.openpnp.util.UiUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,10 +74,13 @@ public class PartsPanel extends JPanel {
     private TableRowSorter<PartsTableModel> partsTableSorter;
     private JTextField searchTextField;
     private JTable partsTable;
+    private ActionGroup partSelectedActionGroup;
 
     public PartsPanel(Configuration configuration, Frame frame) {
         this.configuration = configuration;
         this.frame = frame;
+        
+        partSelectedActionGroup = new ActionGroup(deletePartAction, pickPartAction);
 
         setLayout(new BorderLayout(0, 0));
         partsTableModel = new PartsTableModel();
@@ -133,16 +142,19 @@ public class PartsPanel extends JPanel {
                 }
                 Part part = getSelectedPart();
 
-                deletePartAction.setEnabled(part != null);
+                partSelectedActionGroup.setEnabled(part != null);
             }
         });
 
-        deletePartAction.setEnabled(false);
+        partSelectedActionGroup.setEnabled(false);
 
         JButton btnNewPart = toolBar.add(newPartAction);
         btnNewPart.setToolTipText("");
         JButton btnDeletePart = toolBar.add(deletePartAction);
         btnDeletePart.setToolTipText("");
+        toolBar.addSeparator();
+        JButton btnAlign = toolBar.add(pickPartAction);
+        
     }
 
     private Part getSelectedPart() {
@@ -216,6 +228,39 @@ public class PartsPanel extends JPanel {
             if (ret == JOptionPane.YES_OPTION) {
                 Configuration.get().removePart(getSelectedPart());
             }
+        }
+    };
+    
+    public final Action pickPartAction = new AbstractAction() {
+        {
+            putValue(SMALL_ICON, Icons.load);
+            putValue(NAME, "Pick Part");
+            putValue(SHORT_DESCRIPTION, "Pick the selected part from the first available feeder.");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent arg0) {
+            UiUtils.submitUiMachineTask(() -> {
+                Nozzle nozzle = MainFrame.machineControlsPanel.getSelectedNozzle();
+                Part part = getSelectedPart();
+                Feeder feeder = null;
+                // find a feeder to feed
+                for (Feeder f : Configuration.get().getMachine().getFeeders()) {
+                    if (f.isEnabled() && f.getPart().equals(part)) {
+                        feeder = f;
+                    }
+                }
+                if (feeder == null) {
+                    throw new Exception("No valid feeder found for " + part.getId());
+                }
+                // feed the chosen feeder
+                feeder.feed(nozzle);
+                // pick the part
+                Location pickLocation = feeder.getPickLocation();
+                MovableUtils.moveToLocationAtSafeZ(nozzle, pickLocation, 1.0);
+                nozzle.pick(part);
+                nozzle.moveToSafeZ(1.0);
+            });
         }
     };
 }

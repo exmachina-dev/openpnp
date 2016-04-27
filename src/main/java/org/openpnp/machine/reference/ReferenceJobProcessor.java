@@ -28,6 +28,7 @@ import org.openpnp.model.Configuration;
 import org.openpnp.model.Location;
 import org.openpnp.model.Part;
 import org.openpnp.model.Placement;
+import org.openpnp.model.LengthUnit;
 import org.openpnp.planner.SimpleJobPlanner;
 import org.openpnp.spi.Camera;
 import org.openpnp.spi.Feeder;
@@ -177,9 +178,34 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
                     return;
                 }
 
-                Location placementLocation = placement.getLocation();
+                Location placementLocation =
+                        Utils2D.calculateBoardPlacementLocation(bl, placement.getLocation());
+
                 if (bottomVisionOffsets != null) {
-                    placementLocation = placementLocation.subtractWithRotation(bottomVisionOffsets);
+                    // Rotate the point 0,0 using the bottom offsets as a center point by the angle
+                    // that is
+                    // the difference between the bottom vision angle and the calculated global
+                    // placement angle.
+                    Location location = new Location(LengthUnit.Millimeters).rotateXyCenterPoint(
+                            bottomVisionOffsets,
+                            placementLocation.getRotation() - bottomVisionOffsets.getRotation());
+
+                    // Set the angle to the difference mentioned above, aligning the part to the
+                    // same angle as
+                    // the placement.
+                    location = location.derive(null, null, null,
+                            placementLocation.getRotation() - bottomVisionOffsets.getRotation());
+
+                    // Add the placement final location to move our local coordinate into global
+                    // space
+                    location = location.add(placementLocation);
+
+                    // Subtract the bottom vision offsets to move the part to the final location,
+                    // instead of
+                    // the nozzle.
+                    location = location.subtract(bottomVisionOffsets);
+
+                    placementLocation = location;
                 }
                 placementLocation = Utils2D.calculateBoardPlacementLocation(bl, placementLocation);
 
@@ -307,8 +333,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
                 }
 
                 try {
-                    camera.moveTo(placementLocation.derive(null, null, Double.NaN, null),
-                            placement.getPart().getSpeed());
+                    camera.moveTo(placementLocation.derive(null, null, Double.NaN, null), 1.0);
                     Thread.sleep(750);
                 }
                 catch (Exception e) {
@@ -518,7 +543,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
             // failed to pick, use the delegate to notify and potentially retry
             // We now have the delegate for this, just need to use it and
             // implement the logic for it's potential responses
-            nozzle.pick();
+            nozzle.pick(placement.getPart());
         }
         catch (Exception e) {
             fireJobEncounteredError(JobError.PickError, e.getMessage());
@@ -526,6 +551,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
         }
 
         firePartPicked(bl, placement);
+        firePartPicked(bl, placement, nozzle);
 
         fireDetailedStatusUpdated(String.format("Move to safe Z at (%s).", nozzle.getLocation()));
 
@@ -534,7 +560,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
         }
 
         try {
-            nozzle.moveToSafeZ(placement.getPart().getSpeed());
+            nozzle.moveToSafeZ(1.0);
         }
         catch (Exception e) {
             fireJobEncounteredError(JobError.MachineMovementError, e.getMessage());
@@ -555,8 +581,8 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
 
         // Move the nozzle to the placement Location at safe Z
         try {
-            nozzle.moveTo(placementLocation.derive(null, null, Double.NaN, null),
-                    placement.getPart().getSpeed());
+            nozzle.moveToSafeZ(1.0);
+            nozzle.moveTo(placementLocation.derive(null, null, Double.NaN, null), 1.0);
         }
         catch (Exception e) {
             fireJobEncounteredError(JobError.MachineMovementError, e.getMessage());
@@ -572,7 +598,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
 
         // Lower the nozzle.
         try {
-            nozzle.moveTo(placementLocation, placement.getPart().getSpeed());
+            nozzle.moveTo(placementLocation, 1.0);
         }
         catch (Exception e) {
             fireJobEncounteredError(JobError.MachineMovementError, e.getMessage());

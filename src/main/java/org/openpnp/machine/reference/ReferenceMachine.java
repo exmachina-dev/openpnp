@@ -28,7 +28,13 @@ import javax.swing.Action;
 
 import org.openpnp.gui.support.PropertySheetWizardAdapter;
 import org.openpnp.gui.support.Wizard;
-import org.openpnp.machine.reference.camera.*;
+import org.openpnp.machine.reference.camera.ImageCamera;
+import org.openpnp.machine.reference.camera.LtiCivilCamera;
+import org.openpnp.machine.reference.camera.OpenCvCamera;
+import org.openpnp.machine.reference.camera.SimulatedUpCamera;
+import org.openpnp.machine.reference.camera.VfwCamera;
+import org.openpnp.machine.reference.camera.Webcams;
+import org.openpnp.machine.reference.camera.HttpCamera;
 import org.openpnp.machine.reference.driver.NullDriver;
 import org.openpnp.machine.reference.feeder.ReferenceAutoFeeder;
 import org.openpnp.machine.reference.feeder.ReferenceDragFeeder;
@@ -160,6 +166,7 @@ public class ReferenceMachine extends AbstractMachine {
         l.add(OpenCvCamera.class);
         l.add(ImageCamera.class);
         l.add(HttpCamera.class);
+        l.add(SimulatedUpCamera.class);
         return l;
     }
 

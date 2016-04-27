@@ -15,9 +15,14 @@ import java.util.concurrent.TimeUnit;
 
 import javax.swing.Icon;
 
+import org.openpnp.machine.reference.vision.ReferenceBottomVision;
+import org.openpnp.machine.reference.vision.ReferenceFiducialLocator;
+import org.openpnp.model.LengthUnit;
+import org.openpnp.model.Location;
 import org.openpnp.spi.Actuator;
 import org.openpnp.spi.Camera;
 import org.openpnp.spi.Feeder;
+import org.openpnp.spi.FiducialLocator;
 import org.openpnp.spi.Head;
 import org.openpnp.spi.JobPlanner;
 import org.openpnp.spi.JobProcessor;
@@ -67,10 +72,19 @@ public abstract class AbstractMachine implements Machine {
             required = false)
     protected Map<JobProcessor.Type, JobProcessor> jobProcessors = new HashMap<>();
 
+    @Element(required = false)
+    protected PartAlignment partAlignment = new ReferenceBottomVision();
+    
+    @Element(required = false)
+    protected FiducialLocator fiducialLocator = new ReferenceFiducialLocator();
+    
+    @Element(required = false)
+    protected Location discardLocation = new Location(LengthUnit.Millimeters);
+
     protected Set<MachineListener> listeners = Collections.synchronizedSet(new HashSet<>());
 
     protected ThreadPoolExecutor executor;
-
+    
     protected AbstractMachine() {}
 
     @SuppressWarnings("unused")
@@ -304,5 +318,29 @@ public abstract class AbstractMachine implements Machine {
             throw new Exception("No default head available.");
         }
         return heads.get(0);
+    }
+
+    public PartAlignment getPartAlignment() {
+        return partAlignment;
+    }
+
+    public void setPartAlignment(PartAlignment partAlignment) {
+        this.partAlignment = partAlignment;
+    }
+
+    public FiducialLocator getFiducialLocator() {
+        return fiducialLocator;
+    }
+
+    public void setFiducialLocator(FiducialLocator fiducialLocator) {
+        this.fiducialLocator = fiducialLocator;
+    }
+
+    public Location getDiscardLocation() {
+        return discardLocation;
+    }
+
+    public void setDiscardLocation(Location discardLocation) {
+        this.discardLocation = discardLocation;
     }
 }
