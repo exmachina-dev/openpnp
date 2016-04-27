@@ -191,7 +191,7 @@ public class ReferenceJobProcessorConfigurationWizard extends AbstractConfigurat
             MovableUtils.moveToLocationAtSafeZ(camera, originalLocation, 1.0);
         });
     }
-
+    
     @Override
     public void createBindings() {
         addWrappedBinding(jobProcessor, "demoMode", chckbxDemoMode, "selected");

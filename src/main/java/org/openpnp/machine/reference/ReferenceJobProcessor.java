@@ -33,6 +33,7 @@ import org.openpnp.model.Placement;
 import org.openpnp.planner.SimpleJobPlanner;
 import org.openpnp.spi.Camera;
 import org.openpnp.spi.Feeder;
+import org.openpnp.spi.FiducialLocator;
 import org.openpnp.spi.Head;
 import org.openpnp.spi.JobPlanner;
 import org.openpnp.spi.JobPlanner.PlacementSolution;
@@ -41,9 +42,6 @@ import org.openpnp.spi.Nozzle;
 import org.openpnp.spi.NozzleTip;
 import org.openpnp.spi.base.AbstractJobProcessor;
 import org.openpnp.util.Utils2D;
-import org.openpnp.vision.BottomVision;
-import org.openpnp.vision.FiducialLocator;
-import org.openpnp.vision.pipeline.CvPipeline;
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.core.Commit;
@@ -179,7 +177,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
 
                 Location bottomVisionOffsets = null;
                 try {
-                    bottomVisionOffsets = bottomVision.findOffsets(part, nozzle);
+                    bottomVisionOffsets = machine.getPartAlignment().findOffsets(part, nozzle);
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -352,7 +350,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
     // TODO: Should not bail if there are no fids on the board. Figure out
     // the UI for that.
     protected void checkFiducials() throws Exception {
-        FiducialLocator locator = new FiducialLocator();
+        FiducialLocator locator = Configuration.get().getMachine().getFiducialLocator();
         for (BoardLocation boardLocation : job.getBoardLocations()) {
             if (!boardLocation.isEnabled()) {
                 continue;
