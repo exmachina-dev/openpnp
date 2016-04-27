@@ -43,6 +43,8 @@ import org.openpnp.spi.Nozzle;
 import org.openpnp.spi.NozzleTip;
 import org.openpnp.spi.base.AbstractJobProcessor;
 import org.openpnp.util.Utils2D;
+import org.openpnp.vision.BottomVision;
+import org.openpnp.vision.pipeline.CvPipeline;
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.core.Commit;
