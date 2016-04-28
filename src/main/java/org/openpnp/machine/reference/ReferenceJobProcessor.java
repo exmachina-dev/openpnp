@@ -118,7 +118,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
             }
 
             try {
-                head.moveToSafeZ(1.0);
+                head.moveToSafeZ();
             }
             catch (Exception e) {
                 fireJobEncounteredError(JobError.MachineMovementError, e.getMessage());
@@ -257,7 +257,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
             }
 
             try {
-                head.moveToSafeZ(1.0);
+                head.moveToSafeZ();
             }
             catch (Exception e) {
                 fireJobEncounteredError(JobError.MachineMovementError, e.getMessage());
@@ -314,8 +314,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
                 }
 
                 try {
-                    camera.moveTo(feeder.getPickLocation().derive(null, null, Double.NaN, null),
-                            1.0);
+                    camera.moveTo(feeder.getPickLocation().derive(null, null, Double.NaN, null));
                     Thread.sleep(750);
                 }
                 catch (Exception e) {
@@ -340,7 +339,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
                 }
 
                 try {
-                    camera.moveTo(placementLocation.derive(null, null, Double.NaN, null), 1.0);
+                    camera.moveTo(placementLocation.derive(null, null, Double.NaN, null));
                     Thread.sleep(750);
                 }
                 catch (Exception e) {
@@ -423,7 +422,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
         }
 
         try {
-            nozzle.moveToSafeZ(1.0);
+            nozzle.moveToSafeZ();
         }
         catch (Exception e) {
             fireJobEncounteredError(JobError.MachineMovementError, e.getMessage());
@@ -471,7 +470,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
         }
 
         try {
-            nozzle.moveToSafeZ(1.0);
+            nozzle.moveToSafeZ();
         }
         catch (Exception e) {
             fireJobEncounteredError(JobError.MachineMovementError, e.getMessage());
@@ -487,7 +486,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
 
         // Move the Nozzle to the pick Location at safe Z
         try {
-            nozzle.moveTo(pickLocation.derive(null, null, Double.NaN, null), 1.0);
+            nozzle.moveTo(pickLocation.derive(null, null, Double.NaN, null));
         }
         catch (Exception e) {
             fireJobEncounteredError(JobError.MachineMovementError, e.getMessage());
@@ -502,7 +501,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
 
         // Move the Nozzle to the pick Location
         try {
-            nozzle.moveTo(pickLocation, 1.0);
+            nozzle.moveTo(pickLocation);
         }
         catch (Exception e) {
             fireJobEncounteredError(JobError.MachineMovementError, e.getMessage());
@@ -538,7 +537,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
         }
 
         try {
-            nozzle.moveToSafeZ(1.0);
+            nozzle.moveToSafeZ();
         }
         catch (Exception e) {
             fireJobEncounteredError(JobError.MachineMovementError, e.getMessage());
@@ -559,8 +558,8 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
 
         // Move the nozzle to the placement Location at safe Z
         try {
-            nozzle.moveToSafeZ(1.0);
-            nozzle.moveTo(placementLocation.derive(null, null, Double.NaN, null), 1.0);
+            nozzle.moveToSafeZ();
+            nozzle.moveTo(placementLocation.derive(null, null, Double.NaN, null));
         }
         catch (Exception e) {
             fireJobEncounteredError(JobError.MachineMovementError, e.getMessage());
@@ -576,7 +575,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
 
         // Lower the nozzle.
         try {
-            nozzle.moveTo(placementLocation, 1.0);
+            nozzle.moveTo(placementLocation);
         }
         catch (Exception e) {
             fireJobEncounteredError(JobError.MachineMovementError, e.getMessage());
@@ -611,7 +610,7 @@ public class ReferenceJobProcessor extends AbstractJobProcessor {
 
         // Return to Safe-Z above the board.
         try {
-            nozzle.moveToSafeZ(1.0);
+            nozzle.moveToSafeZ();
         }
         catch (Exception e) {
             fireJobEncounteredError(JobError.MachineMovementError, e.getMessage());
