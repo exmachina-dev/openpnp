@@ -25,7 +25,7 @@ import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 import org.openpnp.gui.components.ComponentDecorators;
 import org.openpnp.gui.support.IntegerConverter;
-import org.openpnp.machine.reference.camera.OpenCvCamera;
+import org.openpnp.machine.reference.camera.RtpCamera;
 import org.openpnp.machine.reference.wizards.ReferenceCameraConfigurationWizard;
 
 import javax.swing.*;
