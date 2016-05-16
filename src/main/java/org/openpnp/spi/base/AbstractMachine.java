@@ -29,6 +29,7 @@ import org.openpnp.spi.JobProcessor;
 import org.openpnp.spi.JobProcessor.Type;
 import org.openpnp.spi.Machine;
 import org.openpnp.spi.MachineListener;
+import org.openpnp.spi.PartAlignment;
 import org.openpnp.util.IdentifiableList;
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
