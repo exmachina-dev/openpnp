@@ -1,6 +1,98 @@
 This file lists major or notable changes to OpenPnP in chronological order. This is not
 a complete change list, only those that may directly interest or affect users.
 
+# 2016-05-16
+
+* Nozzle Park
+
+	https://github.com/openpnp/openpnp/issues/76
+	
+	* There is now a per head park location. You can set the location in Machine Setup -> Heads.
+	
+	* The Zero buttons in the jog controls panel have been replaced with Park buttons. Each will
+	move the selected nozzle to the park location.
+	
+	* The Job Processor will now optionally park the nozzle after a job completes, instead of
+	re-homing. You can turn this option on in Machine Setup -> Job Processors.
+
+# 2016-05-15
+
+* Multi-Select on Parts and Packages Panels
+
+	You can now select multiple entries in the Parts and Packages panels for deletion. 
+
+# 2016-05-14
+
+* Job Processor Refactor
+
+	https://github.com/openpnp/openpnp/issues/265
+	
+	This is a major rewrite of the JobProcessor, which is the code the handles the actual
+	running of jobs. The purpose of this rewrite is to address many issues that have cropped
+	up over the years in the JobProcessor, primarily around error handling and retry. The
+	following changes are included:
+	
+	* Feed Retry: You can specify a retry count (default 3) in the feeder configuration and if a 
+	feed operation fails on a given feeder the operation will retry that many times before
+	disabling the feeder and advancing to the next available one. If no more feeders are available
+	for the part the feed operation fails and the user is notified.
+	https://github.com/openpnp/openpnp/issues/206
+	
+	* Job Error Recovery: If any part of a job fails the user is now presented a dialog offering
+	the options Retry, Skip, Pause to resolve it. No more "The job will be paused"
+	leaving the system broken. Retry will attempt to re-run the previous task. Skip will skip
+	processing the current placement. Pause pauses the job and hides the dialog so that the
+	user can make configuration changes to attempt to resolve the error. The job may be
+	continued with the Run or Step button.
+	
+	* Home After Job Complete: When a job completes normally the machine will return to home.
+	https://github.com/openpnp/openpnp/issues/76
+	
+	* Pre and Post Job Machine Cleanup: Before a job starts and after it either finishes or is
+	aborted, if any nozzles are holding a part the part will be discarded.
+	https://github.com/openpnp/openpnp/issues/102
+	
+	
+	Note to developers: The code and API for this feature is considered alpha quality and is
+	expected to change. I am not happy with the code quality of the feature, but I am very happy
+	with the functionality, so I am releasing it. I intend to revisit this and make significant
+	changes to both the code and the API.
+	
+* Solder Paste Dispense Temporarily Disabled
+
+	Due to the Job Processor Refactor above, Solder Paste Dispense is temporarily disabled. Please
+	see https://github.com/openpnp/openpnp/issues/271 for more information.
+
+# 2016-05-12
+
+* Show Camera Names in All Camera View
+
+	When the "All Cameras" view is selected, the name of each camera will be shown in in a little
+	box in the bottom left of the view. This makes it easier to know what you are looking at when
+	you have multiple cameras in action.
+	
+* FPS Limit Option in OpenCvCamera
+
+	You can now set an FPS limit in the OpenCvCamera wizard. The default is 24. This is helpful
+	to limit CPU usage on a machine with high resolution cameras.
+	
+* Removed Bottom Vision API from VisionProvider
+
+	Before the Bottom Vision feature was complete it had been stubbed into the VisionProvider
+	API. Since Bottom Vision is it's own first level object now this is no longer needed, so
+	it has been removed. Existing implementations should move to either ReferenceBottomVision
+	or to their own specific implementation of PartAlignment.
+	
+* Camera Crop
+
+	https://github.com/openpnp/openpnp/issues/171
+
+	You can now set a crop width and height on your camera. The crop is applied from the center,
+	so setting a crop of 200x200 will make the output from the camera only the center 200x200
+	pixels. This is useful for when you have a high resolution camera but only care about a
+	small portion of it. Cropping decreases the amount of data that is required to be processed
+	and cuts down CPU and memory usage.
+	
 # 2016-04-27
 
 * Speed Values Normalized
