@@ -75,6 +75,7 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
         panelConnection.add(lblHost, "6, 2, center, default");
 
         textFieldHost = new JTextField();
+        textFieldHost.setColumns(20);
         panelConnection.add(textFieldHost, "6, 4, fill, default");
 
         JLabel lblSpacerHostPort = new JLabel(":");
@@ -84,6 +85,7 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
         panelConnection.add(lblPort, "10, 2, center, default");
 
         textFieldPort = new JTextField();
+        textFieldPort.setColumns(5);
         panelConnection.add(textFieldPort, "10, 4, fill, default");
 
         comboBoxProtocol.addItem(new String("http"));
