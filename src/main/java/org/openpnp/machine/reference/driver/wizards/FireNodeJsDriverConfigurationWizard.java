@@ -38,6 +38,7 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
     private JCheckBox disableLpp;
     private JCheckBox invertVacuumPin;
     private JCheckBox powerSupplyCheckBox;
+    private JCheckBox sendBeforeResetConfig;
     private JSpinner powerSupplyPin;
 
     public FireNodeJsDriverConfigurationWizard(FireNodeJsDriver driver) {
@@ -247,14 +248,20 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,}));
 
+        JLabel lblSendBeforeResetConfig = new JLabel("Send config before reset");
+        panelAdvancedConfig.add(lblSendBeforeResetConfig, "2, 2, right, default");
+
+        sendBeforeResetConfig = new JCheckBox();
+        panelAdvancedConfig.add(sendBeforeResetConfig, "4, 2, left, center");
+
         JLabel lblBeforeResetConfig = new JLabel("Reset config");
         lblBeforeResetConfig.setToolTipText("This string is send at start. This allow the machine parameters to be specified. Especially useful for machines without EEPROM.");
-        panelAdvancedConfig.add(lblBeforeResetConfig, "2, 2, right, default");
+        panelAdvancedConfig.add(lblBeforeResetConfig, "2, 4, right, default");
 
         beforeResetConfig = new JTextArea();
         beforeResetConfig.setRows(5);
         beforeResetConfig.setColumns(100);
-        panelAdvancedConfig.add(beforeResetConfig, "4, 2");
+        panelAdvancedConfig.add(beforeResetConfig, "4, 4");
     }
 
     @Override
@@ -283,6 +290,7 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
         addWrappedBinding(driver, "endEffectorLedRingPin", endEffectorLedRingPin, "value");
         addWrappedBinding(driver, "upLookingLedRingPin", upLookingLedRingPin, "value");
 
+        addWrappedBinding(driver, "sendBeforeResetConfig", sendBeforeResetConfig, "selected");
         addWrappedBinding(driver, "beforeResetConfig", beforeResetConfig, "text");
     }
 }

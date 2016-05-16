@@ -97,6 +97,8 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     protected int upLookingLedRingPin = -1;
     // Advanced config
     @Element(required = false)
+    protected boolean sendBeforeResetConfig;
+    @Element(required = false)
     protected String beforeResetConfig = "";
 
     public FireNodeJsDriver() {}
@@ -341,14 +343,16 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         sendCommand("/firestep", motorConfig);
     }
     private synchronized  void reset() throws Exception {
-        if (beforeResetConfig != "") {
-            JsonNode beforeResetObject = new JsonNode(beforeResetConfig);
-            if (beforeResetObject.isArray())
-                sendCommand("/firestep/reset", beforeResetObject.getArray());
-            else
-                sendCommand("/firestep/reset", beforeResetObject.getObject());
-        } else {
-            sendCommand("/firestep/reset", "");
+        if (sendBeforeResetConfig) {
+            if (beforeResetConfig != "") {
+                JsonNode beforeResetObject = new JsonNode(beforeResetConfig);
+                if (beforeResetObject.isArray())
+                    sendCommand("/firestep/reset", beforeResetObject.getArray());
+                else
+                    sendCommand("/firestep/reset", beforeResetObject.getObject());
+            } else {
+                sendCommand("/firestep/reset", "");
+            }
         }
     }
 
@@ -745,6 +749,8 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
     public int getUpLookingLedRingPin() { return upLookingLedRingPin; }
 
+    public boolean getSendBeforeResetConfig() { return sendBeforeResetConfig; }
+
     public String getBeforeResetConfig() { return beforeResetConfig; }
 
     public void setInvertMotorX(boolean invertMotorX) { this.invertMotorX = invertMotorX; }
@@ -772,6 +778,8 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     public void setEndEffectorLedRingPin(int endEffectorLedRingPin) { this.endEffectorLedRingPin = endEffectorLedRingPin; }
 
     public void setUpLookingLedRingPin(int upLookingLedRingPin) { this.upLookingLedRingPin = upLookingLedRingPin; }
+
+    public void setSendBeforeResetConfig(boolean sendBeforeResetConfig) { this.sendBeforeResetConfig = sendBeforeResetConfig; }
 
     public void setBeforeResetConfig(String beforeResetConfig) { this.beforeResetConfig = beforeResetConfig; }
 }
