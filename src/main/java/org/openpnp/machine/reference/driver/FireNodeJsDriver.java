@@ -356,11 +356,17 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         }
     }
 
-    public synchronized void disconnect() {
-        connected = false;
 
+    @Override
+    protected synchronized void disconnect() {
         try {
-            super.disconnect();
+            if (connected) {
+                super.disconnect();
+                Unirest.shutdown();
+                connected = false;
+            } else {
+                logger.info("disconnect(): already disconnected");
+            }
         }
         catch (Exception e) {
             logger.error("disconnect()", e);
