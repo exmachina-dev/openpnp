@@ -210,6 +210,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     }
 
     public void moveTo(Location newLocation, double speed) throws Exception {
+        logger.info("Speed: %s", speed);
 
         if (Math.abs(newLocation.getRotation() - c) >= 0.01) {
             int rotSteps = (int) (newLocation.getRotation() * 3200 / 360);
@@ -254,7 +255,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
                     newCoords.put("lpp", true);
                 }
             }
-
+            HttpResponse<JsonNode> speedResp = sendCommand("/firestep", new JSONObject().put("lppSpeed", speed));
             HttpResponse<JsonNode> response = sendCommand("/firestep", new JSONObject().put("mov", newCoords));
             checkResponseCode(response);
         }
