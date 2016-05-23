@@ -406,9 +406,13 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     public synchronized HttpResponse<JsonNode> sendCommand(String command) throws Exception {
     	return sendCommand(Unirest.get(hostUrl + command));
     }
-    
+
     public synchronized HttpResponse<JsonNode> sendCommand(String command, String field) throws Exception {
-    	return sendCommand(command, new JSONObject().put(field, ""));
+        if (field != "") {
+            return sendCommand(command, new JSONArray());
+        } else {
+            return sendCommand(command, new JSONObject().put(field, ""));
+        }
     }
 
     public synchronized HttpResponse<JsonNode> sendCommand(String command, JSONObject object) throws Exception {
