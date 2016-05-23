@@ -247,11 +247,11 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
                 newCoords.put("z", newLocation.getZ());
             }
 
-            if (disableLpp) {
-                if (!disableLppForShortMoves && currentLocation.getLinearDistanceTo(newLocation) > 100) {
-                    newCoords.put("lpp", true);
-                } else {
+            if (!disableLpp) {
+                if (disableLppForShortMoves && currentLocation.getLinearDistanceTo(newLocation) < 10.0) {
                     newCoords.put("lpp", false);
+                } else {
+                    newCoords.put("lpp", true);
                 }
             }
 
