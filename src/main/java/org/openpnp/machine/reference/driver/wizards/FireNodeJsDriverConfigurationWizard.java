@@ -36,6 +36,10 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
     private JCheckBox invertAxisY;
     private JCheckBox disableLppForShortMoves;
     private JCheckBox disableLpp;
+    private JSpinner homeLppSpinner;
+    private JTextField lppSpeedField;
+    private JTextField lppZField;
+    private JTextField msSettleField;
     private JCheckBox invertVacuumPin;
     private JCheckBox powerSupplyCheckBox;
     private JCheckBox sendBeforeResetConfig;
@@ -94,7 +98,7 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
 
         // Motor panel
         JPanel panelMotors = new JPanel();
-        panelMotors.setBorder(new TitledBorder(null, "Motors and actuators", TitledBorder.LEADING,
+        panelMotors.setBorder(new TitledBorder(null, "Motors", TitledBorder.LEADING,
                 TitledBorder.TOP, null, null));
         contentPanel.add(panelMotors);
         panelMotors
@@ -152,17 +156,70 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
         invertAxisY = new JCheckBox();
         panelMotors.add(invertAxisY, "6, 8, center, center");
 
+        // LPP panel
+        JPanel panelLPP = new JPanel();
+        panelLPP.setBorder(new TitledBorder(null, "Long Path Precision", TitledBorder.LEADING,
+                TitledBorder.TOP, null, null));
+        contentPanel.add(panelLPP);
+        panelLPP
+                .setLayout(
+                        new FormLayout(
+                                new ColumnSpec[] {
+                                        FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow(3)"),
+                                        FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow(3)"),
+                                        FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow(3)"),
+                                        FormSpecs.RELATED_GAP_COLSPEC, ColumnSpec.decode("default:grow(5)"),
+                                },
+                                new RowSpec[] {
+                                        FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
+                                        FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
+                                        FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
+                                        FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
+                                        FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
+                                        FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
+                                        FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,}));
+
         JLabel lblDisableLpp = new JLabel("Disable LPP");
-        panelMotors.add(lblDisableLpp, "2, 10, right, center");
+        panelLPP.add(lblDisableLpp, "2, 2, right, center");
 
         disableLpp = new JCheckBox();
-        panelMotors.add(disableLpp, "4, 10, left, center");
+        panelLPP.add(disableLpp, "4, 2, left, center");
 
         JLabel lblDisableLpp2 = new JLabel("Disable LPP for short moves");
-        panelMotors.add(lblDisableLpp2, "6, 10, right, center");
+        panelLPP.add(lblDisableLpp2, "6, 2, right, center");
 
         disableLppForShortMoves = new JCheckBox();
-        panelMotors.add(disableLppForShortMoves, "8, 10, left, center");
+        panelLPP.add(disableLppForShortMoves, "8, 2, left, center");
+
+        JLabel lblHomeLpp = new JLabel("Home after moves");
+        panelLPP.add(lblHomeLpp, "2, 4, right, default");
+
+        homeLppSpinner = new JSpinner();
+        ((JSpinner.DefaultEditor) homeLppSpinner.getEditor()).getTextField().setColumns(4);
+        panelLPP.add(homeLppSpinner, "4, 4, left, center");
+
+        JLabel lblLppSpeed = new JLabel("LPP speed");
+        panelLPP.add(lblLppSpeed, "6, 4, right, center");
+
+        lppSpeedField = new JTextField();
+        lppSpeedField.setColumns(4);
+        lppSpeedField.setToolTipText("0..1 in float");
+        panelLPP.add(lppSpeedField, "8, 4, left, center");
+
+        JLabel lblMsSettle = new JLabel("Settle time");
+        panelLPP.add(lblMsSettle, "2, 6, right, center");
+
+        msSettleField = new JTextField();
+        msSettleField.setColumns(5);
+        msSettleField.setToolTipText("in milliseconds");
+        panelLPP.add(msSettleField, "4, 6, left, center");
+
+        JLabel lblLppZ = new JLabel("LPP Z");
+        panelLPP.add(lblLppZ, "6, 6, right, center");
+
+        lppZField = new JTextField();
+        lppZField.setColumns(3);
+        panelLPP.add(lppZField, "8, 6, left, center");
 
         // Pins configuration panel
         JPanel panelPins = new JPanel();
@@ -192,19 +249,18 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
         panelPins.add(powerSupplyCheckBox, "4, 2, left, center");
 
         JLabel lblPowerSupply = new JLabel("Power supply pin");
-        panelPins.add(lblPowerSupply, "6, 2, right, default");
+        panelPins.add(lblPowerSupply, "2, 4, right, default");
 
         powerSupplyPin = new JSpinner();
-        powerSupplyPin.setSize(100, 0);
         ((JSpinner.DefaultEditor) powerSupplyPin.getEditor()).getTextField().setColumns(4);
-        panelPins.add(powerSupplyPin, "8, 2, left, center");
+        panelPins.add(powerSupplyPin, "4, 4, left, center");
 
         JLabel lblVacuumPin = new JLabel("Vacuum pin");
-        panelPins.add(lblVacuumPin, "2, 4, right, default");
+        panelPins.add(lblVacuumPin, "6, 2, right, default");
 
         vacuumPin = new JSpinner();
         ((JSpinner.DefaultEditor) vacuumPin.getEditor()).getTextField().setColumns(4);
-        panelPins.add(vacuumPin, "4, 4, left, center");
+        panelPins.add(vacuumPin, "8, 2, left, center");
 
         JLabel lblInvertVacuumPin = new JLabel("Invert vacuum pin");
         panelPins.add(lblInvertVacuumPin, "6, 4, right, default");
@@ -267,6 +323,7 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
     @Override
     public void createBindings() {
         IntegerConverter integerConverter = new IntegerConverter();
+        DoubleConverter doubleConverter = new DoubleConverter("%f");
 
         addWrappedBinding(driver, "protocol", comboBoxProtocol, "selectedItem");
         addWrappedBinding(driver, "host", textFieldHost, "text");
@@ -280,6 +337,10 @@ public class FireNodeJsDriverConfigurationWizard extends AbstractConfigurationWi
 
         addWrappedBinding(driver, "disableLppForShortMoves", disableLppForShortMoves, "selected");
         addWrappedBinding(driver, "disableLpp", disableLpp, "selected");
+        addWrappedBinding(driver, "homeLPP", homeLppSpinner, "value");
+        addWrappedBinding(driver, "lppSpeed", lppSpeedField, "text", doubleConverter);
+        addWrappedBinding(driver, "lppZ", lppZField, "text", doubleConverter);
+        addWrappedBinding(driver, "msSettle", msSettleField, "text", integerConverter);
 
         addWrappedBinding(driver, "powerSupplyManagement", powerSupplyCheckBox, "selected");
         addWrappedBinding(driver, "powerSupplyPin", powerSupplyPin, "value");

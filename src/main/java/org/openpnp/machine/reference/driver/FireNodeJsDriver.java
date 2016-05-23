@@ -80,6 +80,15 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     protected boolean disableLpp;
     @Element(required = false)
     protected boolean disableLppForShortMoves;
+    @Element(required = false)
+    protected int homeLPP = -1;
+    @Element(required = false)
+    protected Double lppSpeed = null;
+    @Element(required = false)
+    protected Double lppZ = null;
+    @Element(required = false)
+    protected int msSettle = -1;
+
     // Power supply
     @Element(required = false)
     protected boolean powerSupplyManagement;
@@ -160,6 +169,7 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
             if (enabled) {
                 enablePowerSupply(enabled); // Power supply should be enabled before issuing a reset, otherwise machine cannot home
+                sendFirenodejsConfig();
                 sendMotorConfig();
                 reset();
             } else {
@@ -342,6 +352,26 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
         motorConfig.put("zdh", !invertMotorZ);
         sendCommand("/firestep", motorConfig);
     }
+
+    private synchronized  void sendFirenodejsConfig() throws Exception {
+        if (homeLPP != -1 || lppSpeed != null || lppZ != null || msSettle != -1)  {
+            JSONObject firenodejsConfig = new JSONObject();
+            if (homeLPP != -1) {
+                firenodejsConfig.put("homeLPP", homeLPP);
+            }
+            if (lppSpeed != null) {
+                firenodejsConfig.put("lppSpeed", lppSpeed);
+            }
+            if (lppZ != null) {
+                firenodejsConfig.put("lppZ", lppZ);
+            }
+            if (msSettle != -1) {
+                firenodejsConfig.put("msSettle", msSettle);
+            }
+            sendCommand("/firestep", firenodejsConfig);
+        }
+    }
+
     private synchronized  void reset() throws Exception {
         if (sendBeforeResetConfig) {
             if (beforeResetConfig != "") {
@@ -743,6 +773,14 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
 
     public boolean getDisableLppForShortMoves() { return disableLppForShortMoves; }
 
+    public int getHomeLPP() { return homeLPP; }
+
+    public Double getLppSpeed() { return lppSpeed; }
+
+    public Double getLppZ() { return lppZ; }
+
+    public int getMsSettle() { return msSettle; }
+
     public boolean getPowerSupplyManagement() { return powerSupplyManagement; }
 
     public int getPowerSupplyPin() { return powerSupplyPin; }
@@ -772,6 +810,14 @@ public class FireNodeJsDriver extends AbstractEthernetDriver {
     public void setDisableLpp(boolean disable) { this.disableLpp = disable; }
 
     public void setDisableLppForShortMoves(boolean disable) { this.disableLppForShortMoves = disable; }
+
+    public void setHomeLPP(int homeLPP) { this.homeLPP = homeLPP; }
+
+    public void setLppSpeed(Double lppSpeed) { this.lppSpeed = lppSpeed; }
+
+    public void setLppZ(Double lppZ) { this.lppZ = lppZ; }
+
+    public void setMsSettle(int msSettle) { this.msSettle = msSettle; }
 
     public void setPowerSupplyManagement(boolean powerSupplyManagement) { this.powerSupplyManagement = powerSupplyManagement; }
 
