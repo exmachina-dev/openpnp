@@ -13,8 +13,8 @@ import javax.swing.Action;
 import javax.swing.JOptionPane;
 
 import org.apache.commons.io.IOUtils;
+import org.opencv.core.KeyPoint;
 import org.opencv.core.RotatedRect;
-import org.opencv.features2d.KeyPoint;
 import org.openpnp.ConfigurationListener;
 import org.openpnp.gui.MainFrame;
 import org.openpnp.gui.support.Icons;
@@ -42,7 +42,6 @@ import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
 import org.simpleframework.xml.Root;
-import org.simpleframework.xml.core.Commit;
 
 public class ReferenceNozzleTip extends AbstractNozzleTip {
 

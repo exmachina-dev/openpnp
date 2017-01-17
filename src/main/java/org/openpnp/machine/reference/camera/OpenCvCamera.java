@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.opencv.core.Mat;
-import org.opencv.highgui.Highgui;
-import org.opencv.highgui.VideoCapture;
+import org.opencv.videoio.VideoCapture;
+import org.opencv.videoio.Videoio;
 import org.openpnp.CameraListener;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.reference.ReferenceCamera;
@@ -143,13 +143,13 @@ public class OpenCvCamera extends ReferenceCamera implements Runnable {
              */
             if (preferredWidth != 0) {
                 Logger.debug("Setting camera {} width to {}", this, preferredWidth);
-                fg.set(Highgui.CV_CAP_PROP_FRAME_WIDTH, preferredWidth);
-                Logger.debug("Camera {} reports width {}", this, fg.get(Highgui.CV_CAP_PROP_FRAME_WIDTH));
+                fg.set(Videoio.CV_CAP_PROP_FRAME_WIDTH, preferredWidth);
+                Logger.debug("Camera {} reports width {}", this, fg.get(Videoio.CV_CAP_PROP_FRAME_WIDTH));
             }
             if (preferredHeight != 0) {
                 Logger.debug("Setting camera {} height to {}", this, preferredHeight);
-                fg.set(Highgui.CV_CAP_PROP_FRAME_HEIGHT, preferredHeight);
-                Logger.debug("Camera {} reports height {}", this, fg.get(Highgui.CV_CAP_PROP_FRAME_HEIGHT));
+                fg.set(Videoio.CV_CAP_PROP_FRAME_HEIGHT, preferredHeight);
+                Logger.debug("Camera {} reports height {}", this, fg.get(Videoio.CV_CAP_PROP_FRAME_HEIGHT));
             }
             
             fg.open(deviceIndex);
@@ -171,13 +171,13 @@ public class OpenCvCamera extends ReferenceCamera implements Runnable {
              */
             if (preferredWidth != 0) {
                 Logger.debug("Setting camera {} width to {}", this, preferredWidth);
-                fg.set(Highgui.CV_CAP_PROP_FRAME_WIDTH, preferredWidth);
-                Logger.debug("Camera {} reports width {}", this, fg.get(Highgui.CV_CAP_PROP_FRAME_WIDTH));
+                fg.set(Videoio.CV_CAP_PROP_FRAME_WIDTH, preferredWidth);
+                Logger.debug("Camera {} reports width {}", this, fg.get(Videoio.CV_CAP_PROP_FRAME_WIDTH));
             }
             if (preferredHeight != 0) {
                 Logger.debug("Setting camera {} height to {}", this, preferredHeight);
-                fg.set(Highgui.CV_CAP_PROP_FRAME_HEIGHT, preferredHeight);
-                Logger.debug("Camera {} reports height {}", this, fg.get(Highgui.CV_CAP_PROP_FRAME_HEIGHT));
+                fg.set(Videoio.CV_CAP_PROP_FRAME_HEIGHT, preferredHeight);
+                Logger.debug("Camera {} reports height {}", this, fg.get(Videoio.CV_CAP_PROP_FRAME_HEIGHT));
             }
         }
         catch (Exception e) {
@@ -274,50 +274,50 @@ public class OpenCvCamera extends ReferenceCamera implements Runnable {
     }
 
     public enum OpenCvCaptureProperty {
-        CAP_PROP_POS_MSEC(0), // !< Current position of the video file in milliseconds.
-        CAP_PROP_POS_FRAMES(1), // !< 0-based index of the frame to be decoded/captured next.
-        CAP_PROP_POS_AVI_RATIO(2), // !< Relative position of the video file: 0=start of the film,
+        CAP_PROP_POS_MSEC(Videoio.CAP_PROP_POS_MSEC), // !< Current position of the video file in milliseconds.
+        CAP_PROP_POS_FRAMES(Videoio.CAP_PROP_POS_FRAMES), // !< 0-based index of the frame to be decoded/captured next.
+        CAP_PROP_POS_AVI_RATIO(Videoio.CAP_PROP_POS_AVI_RATIO), // !< Relative position of the video file: 0=start of the film,
                                    // 1=end of the film.
-        CAP_PROP_FRAME_WIDTH(3), // !< Width of the frames in the video stream.
-        CAP_PROP_FRAME_HEIGHT(4), // !< Height of the frames in the video stream.
-        CAP_PROP_FPS(5), // !< Frame rate.
-        CAP_PROP_FOURCC(6), // !< 4-character code of codec. see VideoWriter::fourcc .
-        CAP_PROP_FRAME_COUNT(7), // !< Number of frames in the video file.
-        CAP_PROP_FORMAT(8), // !< Format of the %Mat objects returned by VideoCapture::retrieve().
-        CAP_PROP_MODE(9), // !< Backend-specific value indicating the current capture mode.
-        CAP_PROP_BRIGHTNESS(10), // !< Brightness of the image (only for cameras).
-        CAP_PROP_CONTRAST(11), // !< Contrast of the image (only for cameras).
-        CAP_PROP_SATURATION(12), // !< Saturation of the image (only for cameras).
-        CAP_PROP_HUE(13), // !< Hue of the image (only for cameras).
-        CAP_PROP_GAIN(14), // !< Gain of the image (only for cameras).
-        CAP_PROP_EXPOSURE(15), // !< Exposure (only for cameras).
-        CAP_PROP_CONVERT_RGB(16), // !< Boolean flags indicating whether images should be converted
+        CAP_PROP_FRAME_WIDTH(Videoio.CAP_PROP_FRAME_WIDTH), // !< Width of the frames in the video stream.
+        CAP_PROP_FRAME_HEIGHT(Videoio.CAP_PROP_FRAME_HEIGHT), // !< Height of the frames in the video stream.
+        CAP_PROP_FPS(Videoio.CAP_PROP_FPS), // !< Frame rate.
+        CAP_PROP_FOURCC(Videoio.CAP_PROP_FOURCC), // !< 4-character code of codec. see VideoWriter::fourcc .
+        CAP_PROP_FRAME_COUNT(Videoio.CAP_PROP_FRAME_COUNT), // !< Number of frames in the video file.
+        CAP_PROP_FORMAT(Videoio.CAP_PROP_FORMAT), // !< Format of the %Mat objects returned by VideoCapture::retrieve(Videoio.retrieve).
+        CAP_PROP_MODE(Videoio.CAP_PROP_MODE), // !< Backend-specific value indicating the current capture mode.
+        CAP_PROP_BRIGHTNESS(Videoio.CAP_PROP_BRIGHTNESS), // !< Brightness of the image (only for cameras).
+        CAP_PROP_CONTRAST(Videoio.CAP_PROP_CONTRAST), // !< Contrast of the image (only for cameras).
+        CAP_PROP_SATURATION(Videoio.CAP_PROP_SATURATION), // !< Saturation of the image (only for cameras).
+        CAP_PROP_HUE(Videoio.CAP_PROP_HUE), // !< Hue of the image (only for cameras).
+        CAP_PROP_GAIN(Videoio.CAP_PROP_GAIN), // !< Gain of the image (only for cameras).
+        CAP_PROP_EXPOSURE(Videoio.CAP_PROP_EXPOSURE), // !< Exposure (only for cameras).
+        CAP_PROP_CONVERT_RGB(Videoio.CAP_PROP_CONVERT_RGB), // !< Boolean flags indicating whether images should be converted
                                   // to RGB.
-        CAP_PROP_WHITE_BALANCE_BLUE_U(17), // !< Currently unsupported.
-        CAP_PROP_RECTIFICATION(18), // !< Rectification flag for stereo cameras (note: only
+        CAP_PROP_WHITE_BALANCE_BLUE_U(Videoio.CAP_PROP_WHITE_BALANCE_BLUE_U), // !< Currently unsupported.
+        CAP_PROP_RECTIFICATION(Videoio.CAP_PROP_RECTIFICATION), // !< Rectification flag for stereo cameras (note: only
                                     // supported by DC1394 v 2.x backend currently).
-        CAP_PROP_MONOCHROME(19),
-        CAP_PROP_SHARPNESS(20),
-        CAP_PROP_AUTO_EXPOSURE(21), // !< DC1394: exposure control done by camera, user can adjust
+        CAP_PROP_MONOCHROME(Videoio.CAP_PROP_MONOCHROME),
+        CAP_PROP_SHARPNESS(Videoio.CAP_PROP_SHARPNESS),
+        CAP_PROP_AUTO_EXPOSURE(Videoio.CAP_PROP_AUTO_EXPOSURE), // !< DC1394: exposure control done by camera, user can adjust
                                     // reference level using this feature.
-        CAP_PROP_GAMMA(22),
-        CAP_PROP_TEMPERATURE(23),
-        CAP_PROP_TRIGGER(24),
-        CAP_PROP_TRIGGER_DELAY(25),
-        CAP_PROP_WHITE_BALANCE_RED_V(26),
-        CAP_PROP_ZOOM(27),
-        CAP_PROP_FOCUS(28),
-        CAP_PROP_GUID(29),
-        CAP_PROP_ISO_SPEED(30),
-        CAP_PROP_BACKLIGHT(32),
-        CAP_PROP_PAN(33),
-        CAP_PROP_TILT(34),
-        CAP_PROP_ROLL(35),
-        CAP_PROP_IRIS(36),
-        CAP_PROP_SETTINGS(37), // ! Pop up video/camera filter dialog (note: only supported by DSHOW
+        CAP_PROP_GAMMA(Videoio.CAP_PROP_GAMMA),
+        CAP_PROP_TEMPERATURE(Videoio.CAP_PROP_TEMPERATURE),
+        CAP_PROP_TRIGGER(Videoio.CAP_PROP_TRIGGER),
+        CAP_PROP_TRIGGER_DELAY(Videoio.CAP_PROP_TRIGGER_DELAY),
+        CAP_PROP_WHITE_BALANCE_RED_V(Videoio.CAP_PROP_WHITE_BALANCE_RED_V),
+        CAP_PROP_ZOOM(Videoio.CAP_PROP_ZOOM),
+        CAP_PROP_FOCUS(Videoio.CAP_PROP_FOCUS),
+        CAP_PROP_GUID(Videoio.CAP_PROP_GUID),
+        CAP_PROP_ISO_SPEED(Videoio.CAP_PROP_ISO_SPEED),
+        CAP_PROP_BACKLIGHT(Videoio.CAP_PROP_BACKLIGHT),
+        CAP_PROP_PAN(Videoio.CAP_PROP_PAN),
+        CAP_PROP_TILT(Videoio.CAP_PROP_TILT),
+        CAP_PROP_ROLL(Videoio.CAP_PROP_ROLL),
+        CAP_PROP_IRIS(Videoio.CAP_PROP_IRIS),
+        CAP_PROP_SETTINGS(Videoio.CAP_PROP_SETTINGS), // ! Pop up video/camera filter dialog (note: only supported by DSHOW
                                // backend currently. Property value is ignored)
-        CAP_PROP_BUFFERSIZE(38),
-        CAP_PROP_AUTOFOCUS(39);
+        CAP_PROP_BUFFERSIZE(Videoio.CAP_PROP_BUFFERSIZE),
+        CAP_PROP_AUTOFOCUS(Videoio.CAP_PROP_AUTOFOCUS);
         
         private final int openCvPropertyId;
 
