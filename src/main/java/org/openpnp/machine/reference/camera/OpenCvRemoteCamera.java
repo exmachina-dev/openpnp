@@ -19,7 +19,12 @@
 
 package org.openpnp.machine.reference.camera;
 
+import org.apache.commons.logging.Log;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.core.MatOfDMatch;
+import org.opencv.core.MatOfFloat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -31,7 +36,7 @@ import org.openpnp.machine.reference.ReferenceCamera;
 import org.openpnp.machine.reference.camera.wizards.OpenCvRemoteCameraConfigurationWizard;
 import org.openpnp.spi.PropertySheetHolder;
 import org.openpnp.util.OpenCvUtils;
-import org.openpnp.logging.Logger;
+import org.pmw.tinylog.Logger;
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.ElementList;
 
@@ -40,14 +45,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.opencv.imgproc.Imgproc.line;
-
 /**
  * A Camera implementation based on the OpenCV FrameGrabbers.
  */
 public class OpenCvRemoteCamera extends ReferenceCamera implements Runnable {
     static {
-        nu.pattern.OpenCV.loadShared();
+        nu.pattern.OpenCV.loadLocally();
         System.loadLibrary(org.opencv.core.Core.NATIVE_LIBRARY_NAME);
     }
 
@@ -55,18 +58,16 @@ public class OpenCvRemoteCamera extends ReferenceCamera implements Runnable {
     private String deviceURI = "";
 
     @Attribute(required = false)
-    private int preferredWidth;
+    private int preferredWidth = 800;
     @Attribute(required = false)
-    private int preferredHeight;
+    private int preferredHeight = 600;
     @Attribute(required = false)
     private int fps = 24;
-
-    @ElementList(required=false)
-    private List<OpenCvCapturePropertyValue> properties = new ArrayList<>();
 
     private VideoCapture fg = new VideoCapture();
     private Thread thread;
     private boolean dirty = false;
+    private boolean reachable = false;
 
     public OpenCvRemoteCamera() {}
 
@@ -77,14 +78,19 @@ public class OpenCvRemoteCamera extends ReferenceCamera implements Runnable {
         }
         Mat mat = new Mat();
         try {
-            if (!fg.read(mat)) {
-                Imgproc.line(mat, new Point(0, 0), new Point(preferredWidth, preferredHeight), new Scalar(0, 255, 0, 255));
-                Imgproc.line(mat, new Point(0, preferredHeight), new Point(preferredWidth, 0), new Scalar(0, 255, 0, 255));
+            if (fg.retrieve(mat, Videoio.CAP_FFMPEG)) {
+                reachable = true;
+            } else {
+                reachable = false;
+                mat = new Mat(preferredHeight, preferredWidth, CvType.CV_8UC3);
+                Imgproc.line(mat, new Point(0, 0), new Point(preferredWidth, preferredHeight), new Scalar(255, 0, 255, 0), 2);
+                Imgproc.line(mat, new Point(0, preferredHeight), new Point(preferredWidth, 0), new Scalar(255, 0, 255, 0), 2);
             }
             BufferedImage img = OpenCvUtils.toBufferedImage(mat);
             return transformImage(img);
         }
         catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
         finally {
@@ -106,6 +112,8 @@ public class OpenCvRemoteCamera extends ReferenceCamera implements Runnable {
                 BufferedImage image = internalCapture();
                 if (image != null) {
                     broadcastCapture(image);
+                } else {
+                    Logger.warn("No image!");
                 }
             }
             catch (Exception e) {
@@ -163,10 +171,6 @@ public class OpenCvRemoteCamera extends ReferenceCamera implements Runnable {
         }
     }
     
-    public double getOpenCvCapturePropertyValue(OpenCvCaptureProperty property) {
-        return fg.get(property.openCvPropertyId);
-    }
-
     public String getDeviceURI() {
         return deviceURI;
     }
@@ -211,6 +215,14 @@ public class OpenCvRemoteCamera extends ReferenceCamera implements Runnable {
         this.dirty = dirty;
     }
 
+    public boolean isReachable() {
+        return reachable;
+    }
+
+    public void setReachable(boolean reachable) {
+        this.reachable = reachable;
+    }
+
     @Override
     public Wizard getConfigurationWizard() {
         return new OpenCvRemoteCameraConfigurationWizard(this);
@@ -225,77 +237,5 @@ public class OpenCvRemoteCamera extends ReferenceCamera implements Runnable {
     public PropertySheetHolder[] getChildPropertySheetHolders() {
         // TODO Auto-generated method stub
         return null;
-    }
-    
-    public List<OpenCvCapturePropertyValue> getProperties() {
-        return properties;
-    }
-
-    public enum OpenCvCaptureProperty {
-        CAP_PROP_POS_MSEC(0), // !< Current position of the video file in milliseconds.
-        CAP_PROP_POS_FRAMES(1), // !< 0-based index of the frame to be decoded/captured next.
-        CAP_PROP_POS_AVI_RATIO(2), // !< Relative position of the video file: 0=start of the film,
-                                   // 1=end of the film.
-        CAP_PROP_FRAME_WIDTH(3), // !< Width of the frames in the video stream.
-        CAP_PROP_FRAME_HEIGHT(4), // !< Height of the frames in the video stream.
-        CAP_PROP_FPS(5), // !< Frame rate.
-        CAP_PROP_FOURCC(6), // !< 4-character code of codec. see VideoWriter::fourcc .
-        CAP_PROP_FRAME_COUNT(7), // !< Number of frames in the video file.
-        CAP_PROP_FORMAT(8), // !< Format of the %Mat objects returned by VideoCapture::retrieve().
-        CAP_PROP_MODE(9), // !< Backend-specific value indicating the current capture mode.
-        CAP_PROP_BRIGHTNESS(10), // !< Brightness of the image (only for cameras).
-        CAP_PROP_CONTRAST(11), // !< Contrast of the image (only for cameras).
-        CAP_PROP_SATURATION(12), // !< Saturation of the image (only for cameras).
-        CAP_PROP_HUE(13), // !< Hue of the image (only for cameras).
-        CAP_PROP_GAIN(14), // !< Gain of the image (only for cameras).
-        CAP_PROP_EXPOSURE(15), // !< Exposure (only for cameras).
-        CAP_PROP_CONVERT_RGB(16), // !< Boolean flags indicating whether images should be converted
-                                  // to RGB.
-        CAP_PROP_WHITE_BALANCE_BLUE_U(17), // !< Currently unsupported.
-        CAP_PROP_RECTIFICATION(18), // !< Rectification flag for stereo cameras (note: only
-                                    // supported by DC1394 v 2.x backend currently).
-        CAP_PROP_MONOCHROME(19),
-        CAP_PROP_SHARPNESS(20),
-        CAP_PROP_AUTO_EXPOSURE(21), // !< DC1394: exposure control done by camera, user can adjust
-                                    // reference level using this feature.
-        CAP_PROP_GAMMA(22),
-        CAP_PROP_TEMPERATURE(23),
-        CAP_PROP_TRIGGER(24),
-        CAP_PROP_TRIGGER_DELAY(25),
-        CAP_PROP_WHITE_BALANCE_RED_V(26),
-        CAP_PROP_ZOOM(27),
-        CAP_PROP_FOCUS(28),
-        CAP_PROP_GUID(29),
-        CAP_PROP_ISO_SPEED(30),
-        CAP_PROP_BACKLIGHT(32),
-        CAP_PROP_PAN(33),
-        CAP_PROP_TILT(34),
-        CAP_PROP_ROLL(35),
-        CAP_PROP_IRIS(36),
-        CAP_PROP_SETTINGS(37), // ! Pop up video/camera filter dialog (note: only supported by DSHOW
-                               // backend currently. Property value is ignored)
-        CAP_PROP_BUFFERSIZE(38),
-        CAP_PROP_AUTOFOCUS(39);
-        
-        private final int openCvPropertyId;
-
-        private OpenCvCaptureProperty(int openCvPropertyId) {
-            this.openCvPropertyId = openCvPropertyId;
-        }
-
-        public int getPropertyId() {
-            return openCvPropertyId;
-        }
-    }
-
-    public static class OpenCvCapturePropertyValue {
-        @Attribute
-        public OpenCvCaptureProperty property;
-        @Attribute
-        public double value;
-        @Attribute
-        public boolean setBeforeOpen;
-        @Attribute
-        public boolean setAfterOpen;
     }
 }

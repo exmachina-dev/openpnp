@@ -27,8 +27,6 @@ import org.openpnp.gui.components.ComponentDecorators;
 import org.openpnp.gui.support.Icons;
 import org.openpnp.gui.support.IntegerConverter;
 import org.openpnp.machine.reference.camera.OpenCvRemoteCamera;
-import org.openpnp.machine.reference.camera.OpenCvRemoteCamera.OpenCvCaptureProperty;
-import org.openpnp.machine.reference.camera.OpenCvRemoteCamera.OpenCvCapturePropertyValue;
 import org.openpnp.machine.reference.wizards.ReferenceCameraConfigurationWizard;
 
 import javax.swing.*;
@@ -50,9 +48,6 @@ public class OpenCvRemoteCameraConfigurationWizard extends ReferenceCameraConfig
 
     private JPanel panelGeneral;
 
-    private List<OpenCvCapturePropertyValue> properties = new ArrayList<>();
-
-    private boolean propertyChanging = false;
     private boolean dirty = false;
 
     public OpenCvRemoteCameraConfigurationWizard(OpenCvRemoteCamera camera) {
@@ -65,10 +60,10 @@ public class OpenCvRemoteCameraConfigurationWizard extends ReferenceCameraConfig
         panelGeneral.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null),
                 "General", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
         panelGeneral.setLayout(new FormLayout(
-                new ColumnSpec[] {FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
+                new ColumnSpec[]{FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
                         FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
                         FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,},
-                new RowSpec[] {FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
+                new RowSpec[]{FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,}));
@@ -80,7 +75,7 @@ public class OpenCvRemoteCameraConfigurationWizard extends ReferenceCameraConfig
         panelGeneral.add(deviceUriTextField, "4, 2, left, default");
         deviceUriTextField.setColumns(20);
 
-        lbluseFor_di = new JLabel("(physical camera to use)");
+        lbluseFor_di = new JLabel("(stream URL to use)");
         panelGeneral.add(lbluseFor_di, "6, 2");
 
         lblFps = new JLabel("FPS");
@@ -112,164 +107,9 @@ public class OpenCvRemoteCameraConfigurationWizard extends ReferenceCameraConfig
 
         lbluseFor_h = new JLabel("(Use 0 for native resolution)");
         panelGeneral.add(lbluseFor_h, "6, 8");
-
-        panel = new JPanel();
-        panel.setBorder(new TitledBorder(null, "Properties (Experimental)", TitledBorder.LEADING,
-                TitledBorder.TOP, null, null));
-        contentPanel.add(panel);
-        panel.setLayout(new FormLayout(new ColumnSpec[] {
-                FormSpecs.RELATED_GAP_COLSPEC,
-                FormSpecs.DEFAULT_COLSPEC,
-                FormSpecs.RELATED_GAP_COLSPEC,
-                FormSpecs.DEFAULT_COLSPEC,
-                FormSpecs.RELATED_GAP_COLSPEC,
-                FormSpecs.DEFAULT_COLSPEC,
-                FormSpecs.RELATED_GAP_COLSPEC,
-                FormSpecs.DEFAULT_COLSPEC,
-                FormSpecs.RELATED_GAP_COLSPEC,
-                FormSpecs.DEFAULT_COLSPEC,},
-            new RowSpec[] {
-                FormSpecs.RELATED_GAP_ROWSPEC,
-                FormSpecs.DEFAULT_ROWSPEC,
-                FormSpecs.RELATED_GAP_ROWSPEC,
-                FormSpecs.DEFAULT_ROWSPEC,}));
-
-        lblProperty = new JLabel("Property");
-        panel.add(lblProperty, "2, 2");
-
-        lblValue = new JLabel("Value");
-        panel.add(lblValue, "4, 2");
-
-        propertyCb = new JComboBox(OpenCvCaptureProperty.values());
-        panel.add(propertyCb, "2, 4");
-
-        propertyValueTf = new JTextField();
-        panel.add(propertyValueTf, "4, 4");
-        propertyValueTf.setColumns(10);
-        
-        readPropertyValueBtn = new JButton(readPropertyValueAction);
-        readPropertyValueBtn.setHideActionText(true);
-        panel.add(readPropertyValueBtn, "6, 4");
-        
-        setBeforeOpenCk = new JCheckBox("Set Before Open");
-        panel.add(setBeforeOpenCk, "8, 4");
-        
-        setAfterOpenCk = new JCheckBox("Set After Open");
-        panel.add(setAfterOpenCk, "10, 4");
-
-        propertyCb.addItemListener(e -> propertyChanged());
-        propertyValueTf.getDocument().addDocumentListener(new DocumentListener() {
-            public void changedUpdate(DocumentEvent e) {
-                if (propertyChanging) {
-                    return;
-                }
-                propertyValueChanged();
-            }
-
-            public void removeUpdate(DocumentEvent e) {
-                if (propertyChanging) {
-                    return;
-                }
-                propertyValueChanged();
-            }
-
-            public void insertUpdate(DocumentEvent e) {
-                if (propertyChanging) {
-                    return;
-                }
-                propertyValueChanged();
-            }
-        });
-        setBeforeOpenCk.addChangeListener(e -> {
-            if (propertyChanging) {
-                return;
-            }
-            OpenCvCapturePropertyValue pv = getPropertyValue((OpenCvCaptureProperty) propertyCb.getSelectedItem());
-            if (pv == null) {
-                return;
-            }
-            pv.setBeforeOpen = setBeforeOpenCk.isSelected();
-            notifyChange();
-        });
-        setAfterOpenCk.addChangeListener(e -> {
-            if (propertyChanging) {
-                return;
-            }
-            OpenCvCapturePropertyValue pv = getPropertyValue((OpenCvCaptureProperty) propertyCb.getSelectedItem());
-            if (pv == null) {
-                return;
-            }
-            pv.setAfterOpen = setAfterOpenCk.isSelected();
-            notifyChange();
-        });
-        
-        // preload the properties
-        properties = new ArrayList<>(camera.getProperties());
-        propertyChanged();
     }
 
-    private void propertyChanged() {
-        propertyChanging = true;
-        OpenCvCapturePropertyValue pv = getPropertyValue((OpenCvCaptureProperty) propertyCb.getSelectedItem()); 
-        propertyValueTf.setText(pv == null ? "" : "" + pv.value);
-        setBeforeOpenCk.setSelected(pv == null ? false : pv.setBeforeOpen);
-        setAfterOpenCk.setSelected(pv == null ? false : pv.setAfterOpen);
-        propertyChanging = false;
-    }
 
-    private void propertyValueChanged() {
-        String text = propertyValueTf.getText();
-        Double value = null;
-        try {
-            value = Double.valueOf(text);
-        }
-        catch (Exception e) {
-            
-        }
-        setPropertyValue((OpenCvCaptureProperty) propertyCb.getSelectedItem(), value);
-        OpenCvCapturePropertyValue pv = getPropertyValue((OpenCvCaptureProperty) propertyCb.getSelectedItem());
-        if (pv == null) {
-            return;
-        }
-        pv.setBeforeOpen = setBeforeOpenCk.isSelected();
-        pv.setAfterOpen = setAfterOpenCk.isSelected();
-    }
-    
-    private OpenCvCapturePropertyValue getPropertyValue(OpenCvCaptureProperty property) {
-        for (OpenCvCapturePropertyValue pv : properties) {
-            if (pv.property == property) {
-                return pv;
-            }
-        }
-        return null;
-    }
-
-    private void setPropertyValue(OpenCvCaptureProperty property, Double value) {
-        OpenCvCapturePropertyValue pv = null;
-        for (OpenCvCapturePropertyValue pv_ : properties) {
-            if (pv_.property == property) {
-                pv = pv_;
-            }
-        }
-        // If the value is null, remove the property.
-        if (value == null && pv != null) {
-            properties.remove(pv);
-            dirty = true;
-            notifyChange();
-            return;
-        }
-        // Otherwise, if the property doesn't exist then create it.
-        if (pv == null) {
-            pv = new OpenCvCapturePropertyValue();
-            pv.property = property;
-            properties.add(pv);
-        }
-        // And set the value.
-        pv.value = value;
-        dirty = true;
-        notifyChange();
-    }
-    
     @Override
     public void createBindings() {
         IntegerConverter intConverter = new IntegerConverter();
@@ -284,13 +124,10 @@ public class OpenCvRemoteCameraConfigurationWizard extends ReferenceCameraConfig
         ComponentDecorators.decorateWithAutoSelect(textFieldPreferredWidth);
         ComponentDecorators.decorateWithAutoSelect(textFieldPreferredHeight);
         ComponentDecorators.decorateWithAutoSelect(fpsTextField);
-        ComponentDecorators.decorateWithAutoSelect(propertyValueTf);
     }
     
     @Override
     protected void loadFromModel() {
-        this.properties = new ArrayList<>(camera.getProperties());
-        propertyChanged();
         dirty = false;
         super.loadFromModel();
     }
@@ -298,27 +135,12 @@ public class OpenCvRemoteCameraConfigurationWizard extends ReferenceCameraConfig
     @Override
     protected void saveToModel() {
         super.saveToModel();
-        camera.getProperties().clear();
-        camera.getProperties().addAll(this.properties);
         if (camera.isDirty() || dirty) {
             camera.setDeviceURI(camera.getDeviceURI());
             dirty = false;
         }
     }
     
-    public Action readPropertyValueAction = new AbstractAction() {
-        {
-            putValue(SMALL_ICON, Icons.refresh);
-            putValue(NAME, "Read Property Value");
-            putValue(SHORT_DESCRIPTION, "Read the current property value directly from the camera.");
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent arg0) {
-            propertyValueTf.setText("" + camera.getOpenCvCapturePropertyValue((OpenCvCaptureProperty) propertyCb.getSelectedItem()));
-        }
-    };
-
 
 
     private JTextField deviceUriTextField;
@@ -333,11 +155,4 @@ public class OpenCvRemoteCameraConfigurationWizard extends ReferenceCameraConfig
     private JTextField fpsTextField;
     private JLabel lbluseFor_fps;
     private JPanel panel;
-    private JLabel lblProperty;
-    private JLabel lblValue;
-    private JComboBox propertyCb;
-    private JTextField propertyValueTf;
-    private JCheckBox setBeforeOpenCk;
-    private JCheckBox setAfterOpenCk;
-    private JButton readPropertyValueBtn;
 }

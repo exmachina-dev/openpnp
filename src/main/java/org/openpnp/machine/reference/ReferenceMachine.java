@@ -32,6 +32,7 @@ import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.reference.camera.ImageCamera;
 import org.openpnp.machine.reference.camera.OnvifIPCamera;
 import org.openpnp.machine.reference.camera.OpenCvCamera;
+import org.openpnp.machine.reference.camera.OpenCvRemoteCamera;
 import org.openpnp.machine.reference.camera.SimulatedUpCamera;
 import org.openpnp.machine.reference.camera.Webcams;
 import org.openpnp.machine.reference.driver.NullDriver;
@@ -193,6 +194,7 @@ public class ReferenceMachine extends AbstractMachine {
         List<Class<? extends Camera>> l = new ArrayList<>();
         l.add(Webcams.class);
         l.add(OpenCvCamera.class);
+        l.add(OpenCvRemoteCamera.class);
         l.add(OnvifIPCamera.class);
         l.add(ImageCamera.class);
         l.add(SimulatedUpCamera.class);
